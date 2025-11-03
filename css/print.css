@@ -1,0 +1,23 @@
+/* /css/print.css — minimal para trabajar con print.js (iframe) */
+
+/* Por defecto en pantalla */
+.print-only { display: none; }
+
+/* En impresión */
+@media print {
+  html, body {
+    background: #fff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Oculta toda la UI que no debe salir en papel */
+  .no-print { display: none !important; }
+
+  /* Si tenés algo que solo deba verse en papel */
+  .print-only { display: block !important; }
+}
+
+/* Importante: SIN @page aquí. El tamaño/márgenes los define print.js dentro del iframe. */

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Óptica Cristal * Carga de trabajos</title>
+
+  <meta name="theme-color" content="#111827" />
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="css/estilos.css?v=4" />
+  <link rel="stylesheet" href="css/print.css?v=1" />
+
+  <!-- Notificaciones -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+  <!-- Overlay de carga -->
+  <div id="spinner" class="spinner no-print" aria-hidden="true" hidden>
+    <div class="loader"></div>
+    <div class="spinner-text">Cargando…</div>
+  </div>
+
+  <div class="wrap">
+    <!-- Encabezado -->
+    <header class="card">
+      <div class="title-row">
+        <div class="brand">
+          <img src="logo.png" alt="Óptica Cristal" />
+          <div>
+            <h1>v05 Optica Cristal</h1>
+            <p class="muted small">San Miguel • Argentina</p>
+          </div>
+        </div>
+        <div class="row" style="grid-template-columns:minmax(200px, 280px);">
+          <div>
+            <label for="numero_trabajo">Número de trabajo</label>
+            <input id="numero_trabajo" name="numero_trabajo" form="formulario"
+                   inputmode="numeric" autocomplete="off" tabindex="-1" />
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Formulario principal -->
+    <form id="formulario" class="grid two" autocomplete="off">
+      <input type="hidden" id="numero_trabajo_hidden" name="numero_trabajo_hidden" />
+      <input type="hidden" id="pack_url" name="pdf" />
+
+      <!-- Columna izquierda -->
+      <section class="card grid" aria-label="Datos del trabajo">
+        <div class="row cols-3">
+          <div>
+            <label for="fecha">Fecha que encarga</label>
+            <input id="fecha" name="fecha" placeholder="dd/mm/aa" />
+          </div>
+          <div>
+            <label for="entrega-select" class="small">Modalidad de entrega</label>
+            <select id="entrega-select" name="entrega">
+              <option value="7" selected>Stock (7 días)</option>
+              <option value="3">Urgente (3 días)</option>
+              <option value="15">Laboratorio (15 días)</option>
+            </select>
+          </div>
+          <div>
+            <label for="fecha_retira">Fecha que retira (estimada)</label>
+            <input id="fecha_retira" name="fecha_retira" type="date" />
+          </div>
+        </div>
+
+        <div class="row cols-3">
+          <div>
+            <label for="dni">DNI</label>
+            <input id="dni" name="dni" inputmode="numeric" />
+            <div id="dni-loading" class="inline-loader" hidden>
+              <span class="pill">Buscando…</span>
+            </div>
+          </div>
+          <div>
+            <label for="nombre">Apellido y nombre</label>
+            <input id="nombre" name="nombre" placeholder="Apellido primero" />
+          </div>
+          <div>
+            <label for="telefono">Teléfono</label>
+            <input id="telefono" name="telefono" autocomplete="tel" placeholder="11 2345 6789" />
+          </div>
+        </div>
+
+        <div class="row cols-1">
+          <div>
+            <label for="localidad">Localidad</label>
+            <input id="localidad" name="localidad"
+                   placeholder="San Miguel, Muñiz, Bella Vista…"
+                   autocomplete="address-level2" enterkeyhint="next" />
+          </div>
+        </div>
+
+        <div class="row cols-2">
+          <div>
+            <label for="cristal">Tipo de cristal</label>
+            <input id="cristal" name="cristal" placeholder="Monofocal / Bifocal / etc." />
+          </div>
+          <div>
+            <label for="precio_cristal">Precio cristal</label>
+            <div class="money"><input id="precio_cristal" name="precio_cristal" inputmode="numeric" /></div>
+          </div>
+        </div>
+
+        <div class="row cols-2">
+          <div>
+            <label for="obra_social">Concepto negativo</label>
+            <input id="obra_social" name="obra_social" placeholder="Ej: O.S. o descuento" />
+          </div>
+          <div>
+            <label for="importe_obra_social">- Descuento</label>
+            <div class="money"><input id="importe_obra_social" name="importe_obra_social" inputmode="numeric" /></div>
+          </div>
+        </div>
+
+        <!-- OD -->
+        <div class="row cols-4">
+          <div>
+            <label for="od_esf">OD ESF</label>
+            <select id="od_esf" name="od_esf"></select>
+          </div>
+          <div>
+            <label for="od_cil">OD CIL</label>
+            <select id="od_cil" name="od_cil"></select>
+          </div>
+          <div>
+            <label for="od_eje">OD EJE</label>
+            <input id="od_eje" name="od_eje" inputmode="numeric" placeholder="EJE" />
+          </div>
+          <div>
+            <label for="distancia_focal">Distancia focal <span class="small muted">(obligatorio)</span></label>
+            <select id="distancia_focal" name="distancia_focal" required>
+              <option value="" selected disabled>Elegí una opción</option>
+              <option>Monofocal Lejos</option>
+              <option>Monofocal Cerca</option>
+              <option>Bifocal</option>
+              <option>Multifocal</option>
+              <option>Ocupacional</option>
+              <option>Monofocal Intermedia</option>
+              <option>Sobre LC</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- OI -->
+        <div class="row cols-4">
+          <div>
+            <label for="oi_esf">OI ESF</label>
+            <select id="oi_esf" name="oi_esf"></select>
+          </div>
+          <div>
+            <label for="oi_cil">OI CIL</label>
+            <select id="oi_cil" name="oi_cil"></select>
+          </div>
+          <div>
+            <label for="oi_eje">OI EJE</label>
+            <input id="oi_eje" name="oi_eje" inputmode="numeric" placeholder="EJE" />
+          </div>
+        </div>
+
+        <div class="row cols-3">
+          <div>
+            <label for="dr">Dr. (oculista)</label>
+            <input id="dr" name="dr" placeholder="Opcional" />
+          </div>
+          <div>
+            <label for="dnp">DNP (OD/OI)</label>
+            <input id="dnp" name="dnp" placeholder="30/30" />
+          </div>
+          <div>
+            <label for="add">ADD</label>
+            <input id="add" name="add" class="grad grad-add" inputmode="numeric" placeholder="0.00" />
+          </div>
+        </div>
+
+        <div class="row cols-3">
+          <div>
+            <label for="otro_concepto">Otro concepto</label>
+            <input id="otro_concepto" name="otro_concepto" placeholder="Ej: tratamiento" />
+          </div>
+          <div>
+            <label for="precio_otro">Precio otro</label>
+            <div class="money"><input id="precio_otro" name="precio_otro" inputmode="numeric" /></div>
+          </div>
+        </div>
+
+        <div class="row cols-3">
+          <div>
+            <label for="vendedor">Vendedor</label>
+            <input id="vendedor" name="vendedor" />
+          </div>
+          <div>
+            <label for="forma_pago">Forma de pago</label>
+            <input id="forma_pago" name="forma_pago" />
+          </div>
+        </div>
+      </section>
+
+      <!-- Columna derecha -->
+      <aside class="grid" aria-label="Armazón y totales">
+        <section class="card grid">
+          <div class="row cols-3">
+            <div>
+              <label for="numero_armazon">Nº armazón</label>
+              <input id="numero_armazon" name="numero_armazon" inputmode="text"
+                     autocapitalize="characters" autocorrect="off" spellcheck="false"
+                     maxlength="12" placeholder="Ej: 13336" />
+              <div id="armazon-loading" class="inline-loader" hidden>
+                <span class="pill">Buscando…</span>
+              </div>
+            </div>
+            <div>
+              <label for="armazon_detalle">Detalle armazón</label>
+              <input id="armazon_detalle" name="armazon_detalle" placeholder="Marca / Modelo / Color" />
+            </div>
+            <div>
+              <label for="precio_armazon">Precio armazón</label>
+              <div class="money"><input id="precio_armazon" name="precio_armazon" inputmode="numeric" /></div>
+            </div>
+          </div>
+
+          <!-- ===== Desglose claro de totales ===== -->
+          <div class="totals-ticket" id="totales-panel">
+            <div class="tt-title">Desglose</div>
+
+            <div class="tt-row sum"><span>Armazón</span><span id="tt-armazon" class="tt-val">$ 0</span></div>
+            <div class="tt-row sum"><span>Cristal</span><span id="tt-cristal" class="tt-val">$ 0</span></div>
+
+            <div class="tt-row sum" id="tt-row-otro">
+              <span id="tt-otro-label">Otro concepto</span>
+              <span id="tt-otro" class="tt-val">$ 0</span>
+            </div>
+
+            <div class="tt-row subtotal">
+              <span>Subtotal</span>
+              <span id="tt-subtotal" class="tt-val">$ 0</span>
+            </div>
+
+            <!-- Seña editable (visible) -->
+            <div class="row it">
+              <span class="lbl">Seña</span>
+              <div class="money"><input id="seniaInput" type="text" inputmode="numeric" value="0" autocomplete="off" /></div>
+            </div>
+
+            <!-- Concepto negativo (solo si hay texto+monto) -->
+            <div class="tt-row rest" id="tt-row-obra">
+              <span id="tt-obra-label">− </span>
+              <span id="tt-obra" class="tt-val">− $ 0</span>
+            </div>
+
+            <!-- Seña (mostrada como resta) -->
+            <div class="tt-row rest">
+              <span>− Seña</span>
+              <span id="tt-sena" class="tt-val">− $ 0</span>
+            </div>
+
+            <div class="tt-divider"></div>
+
+            <div class="tt-row total">
+              <span>Saldo a pagar</span>
+              <span id="tt-saldo" class="tt-val tt-big">$ 0</span>
+            </div>
+
+            <div class="tt-meter" title="Progreso de pago">
+              <div id="tt-meter-fill"></div>
+            </div>
+          </div>
+
+          <!-- ===== Inputs originales (ocultos) ===== -->
+          <div class="visually-hidden">
+            <div class="row cols-3">
+              <div>
+                <label for="total">Total</label>
+                <div class="money"><input id="total" name="total" inputmode="numeric" readonly /></div>
+              </div>
+              <div>
+                <label for="sena">Seña</label>
+                <div class="money"><input id="sena" name="sena" inputmode="numeric" /></div>
+              </div>
+              <div>
+                <label for="saldo">Saldo</label>
+                <div class="money"><input id="saldo" name="saldo" inputmode="numeric" readonly /></div>
+              </div>
+            </div>
+          </div>
+          <!-- ===== Fin inputs originales ===== -->
+        </section>
+
+        <!-- Fotos -->
+        <section class="card grid no-print">
+          <div class="actions">
+            <button id="btn-foto"    type="button" class="secondary">📷 Foto</button>
+            <button id="btn-galeria" type="button" class="secondary">🖼️ Galería</button>
+          </div>
+          <div id="galeria-fotos" class="galeria"></div>
+        </section>
+
+        <!-- Acciones -->
+        <section class="card grid no-print">
+          <div class="actions">
+            <button id="btn-imprimir" type="button" class="ghost">Imprimir</button>
+            <button id="btn-limpiar"  type="button" class="secondary">Limpiar</button>
+            <button type="submit">Guardar</button>
+            <button id="btn-editar" type="button" class="secondary">Editar</button>
+          </div>
+        </section>
+      </aside>
+    </form>
+  </div>
+
+  <!-- Modal de cámara -->
+  <div id="cam-modal" class="cam-modal" hidden>
+    <div class="cam-dialog">
+      <div class="cam-head">
+        <span>Cámara</span>
+        <button id="cam-close-x" class="cam-close" type="button">Cerrar</button>
+      </div>
+      <div class="cam-body">
+        <video id="cam-video" playsinline></video>
+        <div id="cam-preview"><canvas id="cam-shot"></canvas></div>
+      </div>
+      <div class="cam-actions">
+        <button id="cam-tomar"   type="button">Tomar foto</button>
+        <button id="cam-usar"    type="button" disabled>Usar esta</button>
+        <button id="cam-cancelar" type="button">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS -->
+<script type="module" src="js/main.js?v=2025-10-04-ifr"></script>
+
+  <!-- Cálculo de totales en vivo (aislado) -->
+  <script type="module">
+    import { parseMoney, sanitizePrice } from './js/utils.js';
+
+    const $  = (id) => document.getElementById(id);
+    const fmt = (n) => '$ ' + Math.max(0, Math.round(n||0)).toLocaleString('es-AR');
+
+    // Entradas
+    const fields = {
+      precio_armazon: $('precio_armazon'),
+      precio_cristal: $('precio_cristal'),
+      precio_otro:    $('precio_otro'),
+      otro_concepto:  $('otro_concepto'),
+      importe_obra_social: $('importe_obra_social'),
+      concepto_negativo:   $('obra_social'),
+      // seña (oculta, la que se guarda)
+      sena: $('sena'),
+      // total/saldo (ocultos)
+      total: $('total'),
+      saldo: $('saldo'),
+      // seña visible
+      seniaInput: $('seniaInput'),
+    };
+
+    // Salidas
+    const view = {
+      armazon:   $('tt-armazon'),
+      cristal:   $('tt-cristal'),
+      otro:      $('tt-otro'),
+      otroLabel: $('tt-otro-label'),
+      obra:      $('tt-obra'),
+      obraLabel: $('tt-obra-label'),
+      subtotal:  $('tt-subtotal'),
+      sena:      $('tt-sena'),
+      saldo:     $('tt-saldo'),
+      meter:     $('tt-meter-fill'),
+      rowOtro:   $('tt-row-otro'),
+      rowObra:   $('tt-row-obra'),
+    };
+
+    function val(el){ return parseMoney(el?.value || 0); }
+
+    // Mantener sincronizada la seña visible con la oculta que se guarda
+    function syncSeniaHidden(){
+      if (!fields.seniaInput || !fields.sena) return;
+      fields.sena.value = fields.seniaInput.value || '0';
+      fields.sena.dispatchEvent(new Event('input', {bubbles:true}));
+      fields.sena.dispatchEvent(new Event('change', {bubbles:true}));
+    }
+
+    function updateTotals(){
+      const ar = val(fields.precio_armazon);
+      const cr = val(fields.precio_cristal);
+      const ot = val(fields.precio_otro);
+      const os = val(fields.importe_obra_social);
+      const se = val(fields.sena); // ¡lee de la oculta (ya sincronizada)!
+
+      const subtotal = ar + cr + ot;
+      const total    = subtotal;
+      const saldo    = Math.max(0, total - os - se);
+
+      // Totales visibles
+      view.armazon.textContent  = fmt(ar);
+      view.cristal.textContent  = fmt(cr);
+      view.subtotal.textContent = fmt(subtotal);
+      view.sena.textContent     = '− ' + fmt(se);
+      view.saldo.textContent    = fmt(saldo);
+
+      // Otro concepto (mostrar solo si hay texto y monto > 0)
+      const txtOtro = (fields.otro_concepto?.value || '').trim();
+      view.otroLabel.textContent = txtOtro || 'Otro concepto';
+      if (ot > 0 && txtOtro){
+        view.otro.textContent = fmt(ot);
+        view.rowOtro.hidden = false;
+      } else {
+        view.rowOtro.hidden = true;
+      }
+      
+      // Concepto negativo (mostrar solo si hay texto y monto > 0)
+      const txtNeg = (fields.concepto_negativo?.value || '').trim();
+      view.obraLabel.textContent = '− ' + (txtNeg || '');
+      if (os > 0 && txtNeg){
+        view.obra.textContent = '− ' + fmt(os);
+        view.rowObra.hidden = false;
+      } else {
+        view.rowObra.hidden = true;
+      }
+
+      // Barra progreso de pago
+      const pct = total > 0 ? Math.min(100, Math.max(0, Math.round((se / total) * 100))) : 0;
+      view.meter.style.width = pct + '%';
+
+      // Campos ocultos (para guardar)
+      if (fields.total) fields.total.value = total;
+      if (fields.saldo) fields.saldo.value = saldo;
+    }
+
+    const moneyInputs = [
+      fields.precio_armazon,
+      fields.precio_cristal,
+      fields.precio_otro,
+      fields.importe_obra_social,
+      fields.sena,        // oculta
+      fields.seniaInput,  // visible
+    ].filter(Boolean);
+
+    moneyInputs.forEach(el => {
+      el.addEventListener('input', () => { sanitizePrice(el); if (el === fields.seniaInput) syncSeniaHidden(); updateTotals(); });
+      el.addEventListener('blur',  () => { if (el === fields.seniaInput) syncSeniaHidden(); updateTotals(); });
+      el.addEventListener('change',() => { if (el === fields.seniaInput) syncSeniaHidden(); updateTotals(); });
+    });
+
+    [fields.otro_concepto, fields.concepto_negativo].forEach(el => {
+      if (el) ['input','change','blur'].forEach(ev => el.addEventListener(ev, updateTotals));
+    });
+
+    syncSeniaHidden();
+    updateTotals();
+
+    window.__updateTotals = updateTotals;
+  </script>
+
+  <footer>Desarrollado por Juan Ignacio Solis.</footer>
+</body>
+</html>

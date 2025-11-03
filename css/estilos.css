@@ -1,0 +1,304 @@
+/* =========================================================================
+   Óptica Cristal – UI limpio (tablet/print)
+   ========================================================================= */
+
+/* ========== Variables y base ========== */
+:root{
+  --bg:#f5f7fb; --card:#fff; --text:#1f2937; --muted:#6b7280; --line:#e5e7eb;
+  --brand:#1b64f2; --brand-600:#1857d3; --ok:#10b981; --warn:#f59e0b; --danger:#ef4444;
+  --radius:16px; --shadow:0 14px 40px rgba(0,0,0,.08);
+  --gap:12px;
+
+  /* Proporciones desktop editables */
+  --col3-prop: 1fr 1fr 1fr;      /* .row.cols-3 (≥1400px) */
+  --col4-prop: 2fr 1fr 1fr 1fr;  /* .row.cols-4 (≥1400px) */
+}
+
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font: 400 16px/1.35 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+}
+
+/* Contenedor general */
+.wrap{ max-width:1200px; margin:0 auto; padding:clamp(12px,2vw,24px); display:grid; gap:var(--gap); }
+
+/* Tarjetas */
+.card{
+  background:var(--card); border-radius:var(--radius); border:1px solid var(--line);
+  box-shadow:var(--shadow); padding:clamp(12px,1.6vw,18px);
+}
+
+/* Títulos / encabezado */
+.title-row{ display:grid; grid-template-columns:1fr auto; align-items:center; gap:var(--gap); }
+.brand{ display:flex; align-items:center; gap:10px; }
+.brand img{ width:40px; height:40px; object-fit:contain; border-radius:8px; }
+h1{ margin:0; font-size:clamp(18px,2.2vw,22px); }
+.small{ font-size:12px; }
+.muted{ color:var(--muted); }
+.mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+
+/* ========== Grids utilitarias ========== */
+.grid{ display:grid; gap:var(--gap); }
+.grid.two{ grid-template-columns: 1fr; }
+.row{ display:grid; gap:var(--gap); }
+
+/* 4/5 + 1/5 robusto (evita saltos) */
+.row.cols-2{
+  display:grid;
+  grid-template-columns: minmax(0,4fr) minmax(0,1fr);
+  gap: var(--gap);
+  align-items:center;
+}
+.row.cols-2 input, .row.cols-2 select, .row.cols-2 textarea{
+  max-width:100%; box-sizing:border-box;
+}
+
+/* Una sola columna (Obras sociales) */
+.row.cols-1{ display:grid; grid-template-columns: 1fr; gap:var(--gap); }
+
+/* Base tablet/móvil */
+.row.cols-3{ grid-template-columns: repeat(3, minmax(0,1fr)); }
+.row.cols-4{ grid-template-columns: repeat(4, minmax(0,1fr)); }
+
+/* Desktop grande (solo PC) */
+@media (min-width: 1400px){
+  .row.cols-3{ grid-template-columns: var(--col3-prop); column-gap: var(--gap); align-items:center; }
+  .row.cols-4{ grid-template-columns: var(--col4-prop); column-gap: var(--gap); align-items:center; }
+}
+
+/* Tablet (layout de dos columnas en la grilla principal) */
+@media (min-width: 880px){
+  .grid.two{ grid-template-columns: 1.2fr .8fr; align-items:start; }
+}
+
+/* (Opcional) En móvil chico apilar la 4/5 + 1/5 */
+@media (max-width: 600px){
+  .row.cols-2{ grid-template-columns: 1fr; }
+}
+
+/* ========== Formularios ========== */
+label{ display:block; font-size:13px; color:#374151; margin-bottom:6px; }
+input, select, textarea{
+  width:100%; height:44px;
+  border:1px solid #CFD6E4; border-radius:12px;
+  padding:10px 12px; background:#fff; color:var(--text); font-size:16px;
+}
+textarea{ height:auto; min-height:90px; resize:vertical; }
+input::placeholder{ color:#9aa4b2; }
+input:focus, select:focus, textarea:focus{
+  border-color:var(--brand);
+  outline:3px solid color-mix(in srgb, var(--brand) 15%, transparent);
+}
+
+/* SELECT específico de Modalidad (siempre SELECT) */
+#entrega-select{
+  height: 52px;
+  font-size: 16px;
+  border: 1px solid #CFD6E4;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #fff;
+  color: var(--text);
+}
+
+/* Prefijo $ fijo */
+.money{ position:relative; }
+.money::before{
+  content:'$'; position:absolute; left:10px; top:50%; transform:translateY(-50%);
+  color:#6b7280; font-weight:600; pointer-events:none;
+}
+.money>input{ padding-left:22px; text-align:right; }
+
+/* (Los estilos .seg quedan por compatibilidad pero ya no se usan) */
+.seg{ display:flex; gap:8px; flex-wrap:wrap; }
+.seg label{
+  display:flex; align-items:center; gap:6px;
+  background:#f3f4f6; padding:8px 10px; border-radius:10px; cursor:pointer;
+  border:1px solid #e5e7eb; user-select:none;
+}
+.seg input{ width:auto; }
+
+/* Botones */
+.actions{ display:flex; gap:10px; flex-wrap:wrap; }
+button, input[type="submit"]{
+  appearance:none; border:1px solid transparent; border-radius:12px; cursor:pointer;
+  height:44px; padding:0 14px; font-weight:700; font-size:14px; color:#fff; background:var(--brand);
+}
+button:hover{ filter:brightness(1.05); }
+button:active{ transform: translateY(1px); }
+button.secondary{ background:#111827; color:#e5e7eb; border-color:#1f2937; }
+button.ghost{ background:#eef2ff; color:var(--brand); }
+
+/* Loader inline */
+.inline-loader{ display:inline-flex; align-items:center; gap:8px; margin-top:6px; }
+.inline-loader[hidden]{ display:none; }
+.pill{ display:inline-block; padding:2px 8px; border-radius:999px; background:#eef2ff; color:var(--brand); font-weight:600; }
+
+/* ========== Galería de fotos ========== */
+.galeria{
+  display:grid; grid-template-columns: repeat(auto-fill, minmax(110px,1fr));
+  gap:10px; margin-top:10px;
+}
+.galeria .ph{
+  position:relative; overflow:hidden; border-radius:10px;
+  background:#f4f7ff; border:1px solid #d7ddea; aspect-ratio:1/1;
+}
+.galeria .ph img, .galeria .ph canvas{
+  width:100%; height:100%; display:block; object-fit:cover;
+}
+.galeria:empty{
+  min-height:140px; border:1px dashed #d7ddea; border-radius:10px;
+  display:grid; place-items:center; color:#94a3b8;
+}
+.galeria:empty::before{ content:"Sin fotos todavía"; font-size:12px; }
+
+/* ========== Modal de cámara ========== */
+.cam-modal[hidden]{ display:none; }
+.cam-modal{
+  position:fixed; inset:0; background:rgba(0,0,0,.6);
+  display:grid; place-items:center; z-index:10000; padding:16px;
+}
+.cam-dialog{
+  width:min(960px,100%); max-height:90vh;
+  background:#0f172a; color:#e5e7eb;
+  border-radius:18px; box-shadow:0 20px 60px rgba(0,0,0,.45);
+  border:1px solid #1f2a44; display:flex; flex-direction:column;
+}
+.cam-head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 12px; border-bottom:1px solid #1f2a44; font-weight:700;
+}
+.cam-close{ background:transparent; border:1px solid #2a3b66; color:#cbd5e1; border-radius:10px; padding:6px 10px; cursor:pointer; }
+
+.cam-body{ flex:1; overflow:auto; padding:12px; }
+#cam-video{ width:100%; max-height:60vh; background:#0b1329; border-radius:12px; }
+#cam-preview{ margin-top:8px; display:none; }
+#cam-shot{ width:100%; border-radius:12px; }
+
+.cam-actions{
+  position:sticky; bottom:0; background:#0f172a; border-top:1px solid #1f2a44;
+  display:flex; gap:8px; flex-wrap:wrap; padding:10px 12px; justify-content:flex-end;
+}
+.cam-actions button{ background:#121b33; border:1px solid #2a3b66; color:#e5e7eb; }
+#cam-tomar{ background:var(--brand); border-color:var(--brand-600); }
+#cam-usar{ background:var(--ok); border-color:#0e9e79; }
+#cam-cancelar{ background:var(--danger); border-color:#dc2626; }
+
+/* ========== Overlay de carga/progreso (#spinner) ========== */
+.spinner{
+  position:fixed; inset:0; background:rgba(17,24,39,.6);
+  display:none; align-items:center; justify-content:center; z-index:9999;
+  padding:16px;
+}
+.spinner .loader{
+  width:64px; height:64px; border-radius:50%;
+  border:6px solid #fff; border-top-color:var(--brand);
+  animation:spin 1s linear infinite;
+}
+@keyframes spin{ to{ transform: rotate(360deg); } }
+
+.progress-panel{
+  width:min(520px, 92vw);
+  background:#0f172a; color:#e5e7eb; border-radius:16px;
+  padding:14px; box-shadow:0 20px 60px rgba(0,0,0,.45); border:1px solid #1f2a44;
+}
+.progress-title{ font-weight:800; margin-bottom:8px; }
+.progress-note{ margin-top:8px; font-size:12px; color:#93a3b8; }
+.progress-list{ list-style:none; padding:0; margin:0; display:grid; gap:6px; }
+.progress-list li{
+  display:grid; grid-template-columns: 22px 1fr; align-items:center; gap:8px;
+  background:#111a2e; border:1px solid #1f2a44; border-radius:10px; padding:6px 8px;
+  font-size:14px;
+}
+.progress-list li .icon{
+  width:18px; height:18px; display:grid; place-items:center; border-radius:50%;
+  font-size:12px; line-height:1; text-align:center;
+}
+.progress-list li[data-status="todo"]  .icon{ background:#1e293b; color:#94a3b8; }
+.progress-list li[data-status="run"]   .icon{ background:#0ea5e9; color:#0b1226; }
+.progress-list li[data-status="done"]  .icon{ background:#10b981; color:#0b1226; }
+.progress-list li[data-status="error"] .icon{ background:#ef4444; color:#0b1226; }
+
+.progress-list li[data-status="todo"]  .icon::before{ content:'•'; }
+.progress-list li[data-status="run"]   .icon::before{ content:'⏳'; }
+.progress-list li[data-status="done"]  .icon::before{ content:'✓'; font-weight:900; }
+.progress-list li[data-status="error"] .icon::before{ content:'!'; font-weight:900; }
+
+/* ========== Print ========== */
+.print-area{ display:none; }
+@media print{
+  @page{ margin:10mm; }
+  body{ background:#fff; }
+  .wrap{ max-width:none; padding:0; }
+  .card{ box-shadow:none; border:1px solid #ddd; }
+  .no-print, .acciones, .titulo{ display:none !important; }
+  .print-area{ display:block !important; }
+  input,select,textarea,button{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+}
+
+/* Utilidades finales */
+#print-root[hidden]{ display:none !important; }
+.money > input{ text-align:right; }
+input#od_eje, input#oi_eje{ transition: border-color .15s ease; }
+.galeria{ grid-template-columns: repeat(auto-fill, minmax(110px,1fr)); gap:10px; }
+.actions .ghost{ border:1px solid #e5e7eb; }
+
+/* ====== NUEVO: Ticket de totales claro ====== */
+.totals-ticket{
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:12px;
+  background:#fcfdff;
+}
+.totals-ticket .tt-title{
+  font-weight:800; color:#111827; margin-bottom:8px;
+}
+.tt-row{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:6px 4px; border-radius:8px;
+  font-weight:600;
+}
+.tt-row.sum{ color:#065f46; background: #ecfdf5; }       /* ➕ Suma */
+.tt-row.rest{ color:#7f1d1d; background: #fef2f2; }      /* ➖ Resta */
+.tt-row.subtotal{
+  background:#eef2ff; color:#1e3a8a; margin-top:6px; border:1px dashed #c7d2fe;
+}
+.tt-row.total{
+  background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; font-size:18px;
+}
+.tt-row .tt-val{ font-feature-settings: "tnum" 1, "lnum" 1; }
+.tt-row .tt-big{ font-size:22px; font-weight:800; }
+
+/* Separador */
+.tt-divider{ height:1px; background:var(--line); margin:8px 0; }
+
+/* Barra de progreso (seña/total) */
+.tt-meter{
+  height:10px; background:#e5e7eb; border-radius:999px; overflow:hidden; margin-top:8px;
+}
+.tt-meter > div{
+  height:100%; width:0%;
+  background:linear-gradient(90deg, #10b981, #22c55e);
+  transition: width .25s ease;
+}
+
+/* Ocultar sin romper layout (para inputs originales) */
+.visually-hidden{
+  position:absolute !important;
+  width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
+  clip:rect(0,0,0,0); white-space:nowrap; border:0;
+}
+/* Ocultar elementos sin romper layout (lo usa el JS para filas condicionales) */
+.hidden { display: none !important; }
+
+/* Fila editable de Seña dentro del ticket (si querés el look más marcado) */
+.totals-ticket .row.it{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:10px; padding:8px 10px; background:#fff;
+  border:1px dashed #e5e7eb; border-radius:10px;
+}
+.totals-ticket .row.it .lbl{ font-weight:700; }
+.totals-ticket .row.it .money input{ width:120px; }
