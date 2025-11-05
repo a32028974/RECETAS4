@@ -1,6 +1,9 @@
-// /js/main.js — v2025-11-04 FINAL+ (DEBITO + OTRO con detalle)
-// SIN PDF + SIN TELEGRAM • Mantiene número de trabajo, totales, fechas y graduaciones
-// Nuevos: entrega y forma de pago obligatorias + persistencia vendedor/dto + select forma de pago con DEBITO y detalle OTRO
+// /js/main.js — v2025-11-05 EDIT MODE + ENTER-NEXT + AUDIT
+// - SIN PDF/Telegram
+// - Alta: usa guardarTrabajo() (tu flujo actual).
+// - Edición: POST directo (action=updateJob) sin tocar guardar.js.
+// - Enter salta al siguiente campo (no envía formulario).
+// - Al editar no se regenera N° de trabajo; fechas sólo cambian si las cambiás vos.
 
 import './print.js?v=2025-10-04-ifr';
 import { sanitizePrice, parseMoney } from './utils.js';
@@ -10,6 +13,7 @@ import { buscarNombrePorDNI } from './buscarNombre.js';
 import { buscarArmazonPorNumero } from './buscarArmazon.js';
 import { guardarTrabajo } from './guardar.js';
 import { initPhotoPack } from './fotoPack.js';
+import { API_URL, withParams, apiGet } from './api.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -31,9 +35,9 @@ function progressAPI(){ createProgressPanel(); const lis=[...document.querySelec
 }
 
 /* ----------------- FECHAS ----------------- */
-function parseFechaDDMMYY(str){ if(!str) return new Date(); const [d,m,a]=str.split(/[\/\-]/); return new Date(a.length===2?2000+ +a:+a,(+m||1)-1,+d||1); }
+function parseFechaDDMMYY(str){ if(!str) return new Date(); const [d,m,a]=String(str).split(/[\/\-]/); return new Date((a?.length===2?2000+ +a:+a)||new Date().getFullYear(),(+m||1)-1,(+d||1)); }
 function fmtISO(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
-function sumarDias(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+function sumarDias(d,n){ const x=new Date(d); x.setDate(x.getDate()+ (parseInt(n,10)||0)); return x; }
 
 /* ----------------- ENTREGA ----------------- */
 function getDiasEntrega(sel){ const v=parseInt(sel?.value||'',10); if(!isNaN(v)) return v;
@@ -48,6 +52,7 @@ function setupEntrega(){ const sel=$('entrega-select'); if(!sel)return;
 
 /* ----------------- N° TRABAJO ----------------- */
 function generarNumeroTrabajo(){ const t=$('telefono'), o=$('numero_trabajo'); if(!t||!o)return;
+  if (EDIT.active()) return; // en edición NO regenerar
   const v=obtenerNumeroTrabajoDesdeTelefono(t.value); if(v && !o.value.trim()) o.value=v; }
 window.generarNumeroTrabajoDesdeTelefono=generarNumeroTrabajo;
 
@@ -76,6 +81,7 @@ function ensureOtroField(selectEl){
     inp = document.createElement('input');
     inp.type = 'text';
     inp.id = 'forma_pago_otro';
+    inp.name = 'forma_pago_otro';
     inp.className = selectEl.className;
     inp.placeholder = 'Detalle de pago (si elegís OTRO)';
     inp.style.marginTop = '6px';
@@ -86,29 +92,157 @@ function ensureOtroField(selectEl){
 function setupFormaPago(){
   const opciones=['EFECTIVO','DEBITO','TARJETA 1P','TARJETA 3P','TARJETA 6P','TARJETA 12P','TRANSFERENCIA','MERCADO PAGO','OTRO'];
   let el=$('forma_pago'); if(!el)return;
-
-  // si es input, lo reemplazo por select
   if(el.tagName!=='SELECT'){ const s=document.createElement('select'); s.id=el.id; s.name=el.name; s.className=el.className; el.replaceWith(s); el=s; }
-
   el.innerHTML=`<option value="" disabled selected>Elegí una opción</option>` + opciones.map(o=>`<option value="${o}">${o}</option>`).join('');
   el.required=true;
+  const inp = ensureOtroField(el);
+  const syncOtroReq = ()=>{ const need = (el.value==='OTRO'); inp.required = need; inp.style.display = need ? '' : 'none'; if(!need) inp.value=''; };
+  el.addEventListener('change', syncOtroReq); syncOtroReq();
+}
 
-  const otroInp = ensureOtroField(el);
-  otroInp.value = '';
-  otroInp.required = false;
-  otroInp.style.display = 'none';
+/* ----------------- Persistencia vendedor/dto ----------------- */
+function persist(id,key){ const el=$(id); if(!el)return; const sv=localStorage.getItem(key); if(sv!=null) el.value=sv;
+  const save=()=>localStorage.setItem(key,el.value||''); el.addEventListener('change',save); el.addEventListener('blur',save); }
 
-  el.addEventListener('change', ()=>{
-    const esOtro = el.value === 'OTRO';
-    otroInp.style.display = esOtro ? '' : 'none';
-    otroInp.required = esOtro;
-    if (esOtro) otroInp.focus(); else otroInp.value = '';
+/* ----------------- ENTER → siguiente campo (no submit) ----------------- */
+function setupEnterNext(form){
+  if(!form) return;
+  form.addEventListener('keydown', (e)=>{
+    if(e.key!=='Enter') return;
+    const t=e.target;
+    const tag=(t?.tagName||'').toUpperCase();
+    if(tag==='TEXTAREA') return; // permitimos Enter en textarea
+    // si es botón submit, dejamos que siga (pero nuestro submit igual previene y maneja)
+    if(tag==='BUTTON') return;
+    e.preventDefault();
+    // avanzar al siguiente control enfocables
+    const focusables = [...form.querySelectorAll('input,select,textarea,button')].filter(el=>!el.disabled && el.offsetParent!==null && el.tabIndex!==-1);
+    const idx = focusables.indexOf(t);
+    if(idx>=0 && idx<focusables.length-1){ focusables[idx+1].focus(); }
   });
 }
 
-/* ----------------- PERSISTENCIA VENDEDOR ----------------- */
-function persist(id,key){ const el=$(id); if(!el)return; const sv=localStorage.getItem(key); if(sv) el.value=sv;
-  el.addEventListener('change',()=>localStorage.setItem(key,el.value||'')); }
+/* =================== MODO EDICIÓN =================== */
+const EDIT = {
+  get row(){ return $('edit_row')?.value || ''; },
+  set row(v){ const el=$('edit_row'); if(el) el.value = v || ''; },
+  on(){ const b=$('edit_badge'); if(b) b.style.display='inline-block'; const n=$('numero_trabajo'); if(n) { n.readOnly = true; n.classList.add('is-readonly'); } },
+  off(){ const b=$('edit_badge'); if(b) b.style.display='none'; const n=$('numero_trabajo'); if(n) { n.readOnly = false; n.classList.remove('is-readonly'); } this.row=''; },
+  active(){ return !!this.row; }
+};
+
+// Rellena el form a partir de un objeto simple {idCampo: valor}
+function fillFormFields(map){
+  if(!map) return;
+  for(const [id,val] of Object.entries(map)){
+    const el=$(id); if(!el) continue;
+    if(el.tagName==='SELECT'){ // intentamos setear por value o por texto
+      const v = String(val??'').trim();
+      const opt = [...el.options].find(o=>o.value===v || o.textContent.trim()===v);
+      if(opt) el.value = opt.value;
+      else el.value = v; // fallback
+      el.dispatchEvent(new Event('change',{bubbles:true}));
+    }else{
+      el.value = String(val??'');
+      el.dispatchEvent(new Event('input',{bubbles:true}));
+      el.dispatchEvent(new Event('change',{bubbles:true}));
+    }
+  }
+  // recalcular retiro si hace falta
+  recalcularFechaRetira();
+}
+
+// Busca por N° trabajo y carga la fila para editar
+async function cargarParaEditar(){
+  const nro = ($('numero_trabajo')?.value||'').trim();
+  if(!nro){ return Swal.fire('Falta número','Ingresá el N° de trabajo para editar','warning'); }
+
+  try{
+    Swal.fire({title:'Buscando…', allowOutsideClick:false, allowEscapeKey:false, showConfirmButton:false, didOpen:()=>Swal.showLoading()});
+
+    // Endpoint para traer fila exacta por número
+    // Implementar en Apps Script: action=getJobByNumber&nro=XYZ  → { ok:true, rowIndex: N, data: { campo: valor, ... } }
+    const url = withParams(API_URL, { action:'getJobByNumber', nro, json:1 });
+    const resp = await apiGet(url);
+
+    if(!resp?.ok || !resp?.data){ Swal.close(); return Swal.fire('No encontrado', `No se encontró el N° ${nro}`, 'warning'); }
+
+    // Cargar datos en el form
+    fillFormFields(resp.data);
+
+    // Setear control de edición
+    EDIT.row = String(resp.rowIndex ?? '');
+    EDIT.on();
+
+    Swal.close();
+    if($('edit_badge')) $('edit_badge').scrollIntoView({behavior:'smooth',block:'center'});
+
+  }catch(err){
+    console.error(err);
+    Swal.close();
+    Swal.fire('Error','No se pudo consultar el trabajo','error');
+  }
+}
+
+function cancelarEdicion(){
+  const f=$('formulario'); f?.reset();
+  cargarFechaHoy(); setupEntrega(); setupFormaPago(); recalcularFechaRetira();
+  EDIT.off();
+}
+
+/* Guardado de edición: POST directo (sin usar guardar.js) */
+async function guardarEdicionDirecta({progress}={}){
+  const nro = ($('numero_trabajo')?.value||'').trim();
+  const row = EDIT.row;
+  if(!row || !nro) throw new Error('Faltan datos de edición');
+
+  // Confirmación
+  const ok = await Swal.fire({
+    icon:'question',
+    title:'Actualizar trabajo',
+    html:`Vas a <b>actualizar</b> el trabajo <b>${nro}</b> (fila ${row}). ¿Confirmás?`,
+    showCancelButton:true,
+    confirmButtonText:'Sí, actualizar',
+    cancelButtonText:'Cancelar'
+  }).then(r=>r.isConfirmed);
+  if(!ok) return;
+
+  // Auditoría
+  const audit_by = ($('vendedor')?.value||localStorage.getItem('OC_vendedor')||'').toString().trim();
+  const audit_ts = new Date().toISOString();
+
+  // Campos a enviar (mantenemos tus ids)
+  const campos = [
+    'fecha','entrega','fecha_retira','dni','nombre','telefono','localidad',
+    'cristal','precio_cristal','obra_social','importe_obra_social','numero_armazon',
+    'armazon_detalle','precio_armazon','otro_concepto','precio_otro',
+    'od_esf','od_cil','od_eje','oi_esf','oi_cil','oi_eje','dr','dnp','add',
+    'distancia_focal','total','sena','saldo','vendedor','forma_pago','forma_pago_otro'
+  ];
+  const body = new URLSearchParams();
+  body.set('action','updateJob');
+  body.set('rowIndex', row);
+  body.set('numero_trabajo', nro);
+  for(const k of campos){
+    const v = ($(k)?.value ?? '').toString().trim();
+    body.set(k, v);
+  }
+  body.set('audit_by', audit_by);
+  body.set('audit_ts', audit_ts);
+
+  // POST
+  const res = await fetch(API_URL, {
+    method:'POST',
+    headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+    body
+  });
+  const txt = await res.text();
+  let j=null; try{ j=JSON.parse(txt); }catch{}
+  if(!res.ok || !j?.ok){ throw new Error(j?.error || `No se pudo actualizar (HTTP ${res.status})`); }
+
+  // Listo
+  EDIT.off();
+}
 
 /* ----------------- INIT ----------------- */
 document.addEventListener('DOMContentLoaded',()=>{
@@ -119,41 +253,64 @@ document.addEventListener('DOMContentLoaded',()=>{
   setupEntrega();
   setupFormaPago();
 
+  // Persistencias
   persist('vendedor','OC_vendedor');
   persist('dto_vendedor','OC_dto_vendedor');
 
+  // Teléfono → N° trabajo (solo cuando NO estamos editando)
   const tel=$('telefono');
   tel?.addEventListener('input',generarNumeroTrabajo);
   tel?.addEventListener('blur',generarNumeroTrabajo);
 
+  // DNI → nombre/teléfono
   const dni=$('dni'), nom=$('nombre'), tel2=$('telefono'), ind=$('dni-loading');
   dni?.addEventListener('blur',()=>buscarNombrePorDNI(dni,nom,tel2,ind));
-  dni?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();buscarNombrePorDNI(dni,nom,tel2,ind);}});
+  dni?.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); window.__dniGoNext=true; buscarNombrePorDNI(dni,nom,tel2,ind);} });
 
+  // Nº armazón → detalle y precio
+  const nAr=$('numero_armazon'), detAr=$('armazon_detalle'), prAr=$('precio_armazon');
+  if(nAr){
+    const doAr=async()=>{ await buscarArmazonPorNumero(nAr,detAr,prAr); prAr?.dispatchEvent(new Event('input',{bubbles:true})); };
+    nAr.addEventListener('blur',doAr);
+    nAr.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); doAr(); } });
+    nAr.addEventListener('input',()=>{ nAr.value=nAr.value.toUpperCase().replace(/\s+/g,'').replace(/[^A-Z0-9\-]/g,''); });
+  }
+
+  // Botones varios
+  $('btn-imprimir')?.addEventListener('click',()=>window.print());
+  $('btn-limpiar')?.addEventListener('click',()=>cancelarEdicion());
+
+  // EDITAR / CANCELAR EDICIÓN
+  $('btn-editar')?.addEventListener('click',()=>cargarParaEditar());
+  $('btn-cancelar-edit')?.addEventListener('click',()=>cancelarEdicion());
+
+  // ENTER → next
+  setupEnterNext($('formulario'));
+
+  // Guardar
   const f=$('formulario');
-  f?.addEventListener('submit',async(e)=>{
+  f?.addEventListener('submit', async (e)=>{
     e.preventDefault();
 
-    if(!$('entrega-select').value) { if(window.Swal) Swal.fire('Falta completar','Elegí la modalidad de entrega','warning'); return; }
-    const fp = $('forma_pago');
-    if(!fp.value) { if(window.Swal) Swal.fire('Falta completar','Elegí la forma de pago','warning'); return; }
-
-    // Si es OTRO, exigir detalle y enviar como "OTRO - <detalle>"
-    if(fp.value === 'OTRO'){
-      const det = ($('forma_pago_otro')?.value || '').trim();
-      if(!det){ if(window.Swal) Swal.fire('Detalle requerido','Escribí el detalle de la forma de pago','warning'); $('forma_pago_otro').focus(); return; }
-      fp.value = `OTRO - ${det}`;
-    }
-
+    // Reglas obligatorias
+    if(!$('entrega-select')?.value) return Swal.fire('Falta completar','Elegí la modalidad de entrega','warning');
+    if(!$('forma_pago')?.value)     return Swal.fire('Falta completar','Elegí la forma de pago','warning');
     if(!checkEje($('od_cil'),$('od_eje'))) return;
     if(!checkEje($('oi_cil'),$('oi_eje'))) return;
 
     const p=progressAPI(); p.autoAdvance();
-    try{ await guardarTrabajo({progress:p}); p.doneAndHide();
-      await Swal.fire('Trabajo guardado','Se guardó correctamente','success');
-    }catch(err){ p.fail(err?.message); }
-  });
 
-  $('btn-limpiar')?.addEventListener('click',()=>{f.reset(); cargarFechaHoy(); setupEntrega(); setupFormaPago();});
-  $('btn-imprimir')?.addEventListener('click',()=>window.print());
+    try{
+      if(EDIT.active()){
+        await guardarEdicionDirecta({progress:p});
+      }else{
+        await guardarTrabajo({progress:p}); // alta normal (tu flujo)
+      }
+      p.doneAndHide();
+      await Swal.fire('Listo','Se guardó correctamente','success');
+    }catch(err){
+      console.error(err);
+      p.fail(err?.message || 'Error al guardar');
+    }
+  });
 });
