@@ -30,15 +30,23 @@
         <div class="brand">
           <img src="logo.png" alt="Óptica Cristal" />
           <div>
-            <h1>v11 Optica Cristal</h1>
+            <h1>v12 Optica Cristal</h1>
             <p class="muted small">San Miguel • Argentina</p>
           </div>
         </div>
-        <div class="row" style="grid-template-columns:minmax(200px, 280px);">
+        <div class="row" style="grid-template-columns:minmax(220px, 320px) auto;">
           <div>
             <label for="numero_trabajo">Número de trabajo</label>
             <input id="numero_trabajo" name="numero_trabajo" form="formulario"
-                   inputmode="numeric" autocomplete="off" tabindex="-1" />
+                   inputmode="numeric" autocomplete="off" />
+          </div>
+
+          <!-- MODO EDICIÓN -->
+          <div style="align-self:end; display:flex; gap:.5rem; align-items:center;">
+            <input type="hidden" id="edit_row" value="" />
+            <span id="edit_badge" style="display:none;padding:4px 8px;border-radius:6px;background:#fde047;color:#1f2937;font-weight:600;">
+              MODO EDICIÓN
+            </span>
           </div>
         </div>
       </div>
@@ -59,7 +67,8 @@
           <div>
             <label for="entrega-select" class="small">Modalidad de entrega</label>
             <select id="entrega-select" name="entrega">
-              <option value="7" selected>Stock (7 días)</option>
+              <!-- El placeholder 'Elegí una opción' lo inyecta main.js -->
+              <option value="7">Stock (7 días)</option>
               <option value="3">Urgente (3 días)</option>
               <option value="15">Laboratorio (15 días)</option>
             </select>
@@ -198,6 +207,7 @@
           <div>
             <label for="forma_pago">Forma de pago</label>
             <input id="forma_pago" name="forma_pago" />
+            <!-- main.js reemplaza este input por un <select> con DEBITO / OTRO+detalle -->
           </div>
         </div>
       </section>
@@ -234,8 +244,7 @@
 
             <div class="tt-row sum" id="tt-row-otro">
               <span id="tt-otro-label">Otro concepto</span>
-              <span id="tt-otro" class="tt-val">$ 0</span>
-            </div>
+              <span id="tt-otro" class="tt-val">$ 0</span></div>
 
             <div class="tt-row subtotal">
               <span>Subtotal</span>
@@ -292,7 +301,7 @@
           <!-- ===== Fin inputs originales ===== -->
         </section>
 
-        <!-- Fotos -->
+        <!-- Fotos (usa tu flujo de fotoPack) -->
         <section class="card grid no-print">
           <div class="actions">
             <button id="btn-foto"    type="button" class="secondary">📷 Foto</button>
@@ -303,11 +312,12 @@
 
         <!-- Acciones -->
         <section class="card grid no-print">
-          <div class="actions">
+          <div class="actions" style="flex-wrap:wrap; gap:.5rem">
             <button id="btn-imprimir" type="button" class="ghost">Imprimir</button>
             <button id="btn-limpiar"  type="button" class="secondary">Limpiar</button>
             <button type="submit">Guardar</button>
             <button id="btn-editar" type="button" class="secondary">Editar</button>
+            <button id="btn-cancelar-edit" type="button" class="ghost">Cancelar edición</button>
           </div>
         </section>
       </aside>
@@ -334,7 +344,7 @@
   </div>
 
   <!-- JS -->
-<script type="module" src="js/main.js?v=2025-10-04-ifr"></script>
+  <script type="module" src="js/main.js?v=2025-11-05"></script>
 
   <!-- Cálculo de totales en vivo (aislado) -->
   <script type="module">
@@ -413,7 +423,7 @@
       } else {
         view.rowOtro.hidden = true;
       }
-      
+
       // Concepto negativo (mostrar solo si hay texto y monto > 0)
       const txtNeg = (fields.concepto_negativo?.value || '').trim();
       view.obraLabel.textContent = '− ' + (txtNeg || '');
