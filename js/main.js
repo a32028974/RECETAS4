@@ -1,6 +1,6 @@
-// /js/main.js — v2025-11-04 FINAL
-// SIN PDF + SIN TELEGRAM + Mantiene número de trabajo, totales, fechas y graduaciones
-// Nuevos: entrega y forma de pago obligatorias + persistencia vendedor/dto + select forma de pago
+// /js/main.js — v2025-11-04 FINAL+ (DEBITO + OTRO con detalle)
+// SIN PDF + SIN TELEGRAM • Mantiene número de trabajo, totales, fechas y graduaciones
+// Nuevos: entrega y forma de pago obligatorias + persistencia vendedor/dto + select forma de pago con DEBITO y detalle OTRO
 
 import './print.js?v=2025-10-04-ifr';
 import { sanitizePrice, parseMoney } from './utils.js';
@@ -41,7 +41,7 @@ function getDiasEntrega(sel){ const v=parseInt(sel?.value||'',10); if(!isNaN(v))
 function recalcularFechaRetira(){ const enc=$('fecha'), out=$('fecha_retira'), sel=$('entrega-select'); if(!enc||!out||!sel)return;
   const d=getDiasEntrega(sel); if(isNaN(d)){out.value='';return;} out.value=fmtISO(sumarDias(parseFechaDDMMYY(enc.value),d)); }
 function setupEntrega(){ const sel=$('entrega-select'); if(!sel)return;
-  sel.insertAdjacentHTML('afterbegin','<option value="" selected disabled>Elegí una opción</option>');
+  if (![...sel.options].some(o=>o.value==='')) sel.insertAdjacentHTML('afterbegin','<option value="" selected disabled>Elegí una opción</option>');
   sel.required=true;
   sel.addEventListener('change',recalcularFechaRetira);
 }
@@ -53,7 +53,7 @@ window.generarNumeroTrabajoDesdeTelefono=generarNumeroTrabajo;
 
 /* ----------------- GRADUACIONES + EJE ----------------- */
 function checkEje(cil,eje){ const c=parseFloat((cil?.value||'').replace(',','.')); const e=parseInt(eje?.value||'',10);
-  const ok=(isNaN(c)||c===0)||(e>=0&&e<=180); eje.style.borderColor=ok?'#e5e7eb':'#ef4444'; return ok; }
+  const ok=(isNaN(c)||c===0)||(e>=0&&e<=180); if(eje) eje.style.borderColor=ok?'#e5e7eb':'#ef4444'; return ok; }
 function setupGraduaciones(){
   const fill=(id,max,step)=>{ const s=$(id); if(!s)return; s.innerHTML=''; const add=v=>{const o=document.createElement('option');o.value=v;o.textContent=v;s.appendChild(o);}
     for(let v=max;v>=step-1e-9;v-=step)add((v>0?'+':'')+v.toFixed(2)); add('0.00'); for(let v=-step;v>=-max-1e-9;v-=step)add((v>0?'+':'')+v.toFixed(2)); s.value='0.00'; };
@@ -69,15 +69,41 @@ function setupCalculos(){
   upd();
 }
 
-/* ----------------- FORMA DE PAGO (CONVERSIÓN A SELECT) ----------------- */
+/* ----------------- FORMA DE PAGO (SELECT + DEBITO + OTRO con detalle) ----------------- */
+function ensureOtroField(selectEl){
+  let inp = $('forma_pago_otro');
+  if (!inp) {
+    inp = document.createElement('input');
+    inp.type = 'text';
+    inp.id = 'forma_pago_otro';
+    inp.className = selectEl.className;
+    inp.placeholder = 'Detalle de pago (si elegís OTRO)';
+    inp.style.marginTop = '6px';
+    selectEl.parentNode.insertBefore(inp, selectEl.nextSibling);
+  }
+  return inp;
+}
 function setupFormaPago(){
-  const opciones=['EFECTIVO','TARJETA 1P','TARJETA 3P','TARJETA 6P','TARJETA 12P','TRANSFERENCIA','MERCADO PAGO','OTRO'];
+  const opciones=['EFECTIVO','DEBITO','TARJETA 1P','TARJETA 3P','TARJETA 6P','TARJETA 12P','TRANSFERENCIA','MERCADO PAGO','OTRO'];
   let el=$('forma_pago'); if(!el)return;
 
+  // si es input, lo reemplazo por select
   if(el.tagName!=='SELECT'){ const s=document.createElement('select'); s.id=el.id; s.name=el.name; s.className=el.className; el.replaceWith(s); el=s; }
 
   el.innerHTML=`<option value="" disabled selected>Elegí una opción</option>` + opciones.map(o=>`<option value="${o}">${o}</option>`).join('');
   el.required=true;
+
+  const otroInp = ensureOtroField(el);
+  otroInp.value = '';
+  otroInp.required = false;
+  otroInp.style.display = 'none';
+
+  el.addEventListener('change', ()=>{
+    const esOtro = el.value === 'OTRO';
+    otroInp.style.display = esOtro ? '' : 'none';
+    otroInp.required = esOtro;
+    if (esOtro) otroInp.focus(); else otroInp.value = '';
+  });
 }
 
 /* ----------------- PERSISTENCIA VENDEDOR ----------------- */
@@ -108,8 +134,17 @@ document.addEventListener('DOMContentLoaded',()=>{
   f?.addEventListener('submit',async(e)=>{
     e.preventDefault();
 
-    if(!$('entrega-select').value) return Swal.fire('Falta completar','Elegí la modalidad de entrega','warning');
-    if(!$('forma_pago').value) return Swal.fire('Falta completar','Elegí la forma de pago','warning');
+    if(!$('entrega-select').value) { if(window.Swal) Swal.fire('Falta completar','Elegí la modalidad de entrega','warning'); return; }
+    const fp = $('forma_pago');
+    if(!fp.value) { if(window.Swal) Swal.fire('Falta completar','Elegí la forma de pago','warning'); return; }
+
+    // Si es OTRO, exigir detalle y enviar como "OTRO - <detalle>"
+    if(fp.value === 'OTRO'){
+      const det = ($('forma_pago_otro')?.value || '').trim();
+      if(!det){ if(window.Swal) Swal.fire('Detalle requerido','Escribí el detalle de la forma de pago','warning'); $('forma_pago_otro').focus(); return; }
+      fp.value = `OTRO - ${det}`;
+    }
+
     if(!checkEje($('od_cil'),$('od_eje'))) return;
     if(!checkEje($('oi_cil'),$('oi_eje'))) return;
 
