@@ -152,109 +152,168 @@ function fillFormFields(map){
   recalcularFechaRetira();
 }
 
-// Busca por N° trabajo y carga la fila para editar
-async function cargarParaEditar(){
+// Busca por N° trabajo y carga la fila para editar (sheet "Carga de trabajos")
+async function cargarParaEditar() {
   const nro = (document.getElementById('numero_trabajo')?.value || '').trim();
-  if(!nro){ return Swal.fire('Falta número','Ingresá el N° de trabajo para editar','warning'); }
+  if (!nro) {
+    return Swal.fire('Falta número', 'Ingresá el N° de trabajo para editar', 'warning');
+  }
 
-  try{
-    Swal.fire({title:'Buscando…', allowOutsideClick:false, allowEscapeKey:false, showConfirmButton:false, didOpen:()=>Swal.showLoading()});
+  // === Helper: setear valor en múltiples IDs candidatos ===
+  const setField = (idList, val) => {
+    const candidates = Array.isArray(idList) ? idList : [idList];
+    for (const id of candidates) {
+      const el =
+        document.getElementById(id) ||
+        document.querySelector(`[name="${id}"]`) ||
+        document.querySelector(`[data-field="${id}"]`);
+      if (el) {
+        // normalizo valores tipo dinero: saco espacios
+        const text = (val ?? '').toString().trim();
+        el.value = text;
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+        return true;
+      }
+    }
+    return false;
+  };
 
-    // Llama al GAS nuevo (func editar receta)
-    const url  = withParams(EDIT_URL, { action:'getJobByNumber', nro, json:1, _:+Date.now() });
+  try {
+    Swal.fire({
+      title: 'Buscando…',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      showConfirmButton: false,
+      didOpen: () => Swal.showLoading(),
+    });
+
+    // Consulto al Apps Script nuevo (func editar receta)
+    const url = withParams(EDIT_URL, {
+      action: 'getJobByNumber',
+      nro,
+      json: 1,
+      _: Date.now(),
+    });
     const resp = await apiGet(url);
 
-    if(!resp?.ok){
+    if (!resp?.ok) {
       Swal.close();
       return Swal.fire('Error', resp?.error || 'No se pudo consultar', 'error');
     }
-    if(!resp.hits || resp.hits.length === 0){
+    if (!resp.hits || resp.hits.length === 0) {
       Swal.close();
       return Swal.fire('No encontrado', `No se encontró el N° ${nro}`, 'warning');
     }
 
-    // Si escribiste "50511183839" y hay variantes, trae exacto si existe; sino muestra un selector
+    // Elegir exacto o variante
     let hit = null;
     if (resp.exact) {
       hit = resp.hits[0];
     } else if (resp.hits.length > 1) {
-      // Elegir variante 50511183839-1, -2, etc.
       const { value: elegido } = await Swal.fire({
         title: 'Elegí el trabajo',
         input: 'select',
-        inputOptions: Object.fromEntries(resp.hits.map(h => [h.nro, h.nro])),
+        inputOptions: Object.fromEntries(resp.hits.map((h) => [h.nro, h.nro])),
         inputPlaceholder: 'Seleccioná…',
         showCancelButton: true,
         confirmButtonText: 'Cargar',
       });
-      if (!elegido) { Swal.close(); return; }
-      hit = resp.hits.find(h => h.nro === elegido);
+      if (!elegido) {
+        Swal.close();
+        return;
+      }
+      hit = resp.hits.find((h) => h.nro === elegido);
     } else {
       hit = resp.hits[0];
     }
 
-    if (!hit?.data){
+    if (!hit?.data) {
       Swal.close();
       return Swal.fire('Error', 'Respuesta sin datos', 'error');
     }
 
-    // ====== Mapeo de columnas -> IDs del formulario ======
-    // Ajustá claves si alguno de tus IDs difiere.
+    // ===== MAPEO EXACTO: encabezado de tu hoja -> ids del formulario =====
+    // Si algún id no coincide con tu HTML, dejé VARIAS opciones por campo.
     const FIELD_MAP = {
-      'NUMERO TRABAJO': 'numero_trabajo',
-      'DOCUMENTO': 'dni',
-      'APELLIDO Y NOMBRE': 'apellido',       // si tu input se llama distinto, cambiá acá
-      'TELEFONO': 'telefono',
-      'LOCALIDAD': 'localidad',
+      // Identificación
+      'NUMERO TRABAJO': ['numero_trabajo', 'nro_trabajo', 'nro'],
+      'DOCUMENTO': ['dni', 'documento'],
+      'APELLIDO Y NOMBRE': ['apellido', 'nombre_apellido', 'apellido_nombre'],
 
-      'N ANTEOJO': 'n_armazon',
-      'DETALLE ARMAZON': 'detalle_armazon',
-      'PRECIO ARMAZON': 'precio_armazon',
+      // Contacto
+      'TELEFONO': ['telefono', 'tel'],
+      'LOCALIDAD': ['localidad'],
 
-      'CRISTAL': 'tipo_cristal',
-      'PRECIO CRISTAL': 'precio_cristal',
+      // Fechas
+      'FECHA': ['fecha_encarga', 'fecha'],
+      'FECHA RETIRA': ['fecha_retira', 'fecha_estimada'],
+      'FECHA Y HORA': ['fecha_hora'],
+      'Fecha entrega real': ['fecha_entrega_real', 'fecha_entrega'],
 
-      'OTRO CONCEPTO': 'otro_concepto',
-      'PRECIO OTRO': 'precio_otro',
+      // Producto / precios
+      'CRISTAL': ['tipo_cristal', 'cristal'],
+      'PRECIO CRISTAL': ['precio_cristal'],
+      'N ANTEOJO': ['n_armazon', 'numero_armazon'],
+      'PRECIO ARMAZON': ['precio_armazon'],
+      'DETALLE ARMAZON': ['detalle_armazon', 'modelo_armazon'],
 
-      'ENTREGA': 'modalidad_entrega',        // o 'entrega' si ese es tu id
-      'FORMA DE PAGO': 'forma_pago',
-      'VENDEDOR': 'vendedor',
+      // Otros conceptos
+      'OTRO CONCEPTO': ['otro_concepto', 'concepto_otro'],
+      'PRECIO OTRO': ['precio_otro'],
 
-      'OD ESF': 'od_esf',
-      'OD CIL': 'od_cil',
-      'OD EJE': 'od_eje',
-      'OI ESF': 'oi_esf',
-      'OI CIL': 'oi_cil',
-      'OI EJE': 'oi_eje',
-      'DNP': 'dnp',
-      'DISTANCIA FOCAL': 'distancia_focal',
+      // Entrega / forma de pago / vendedor / oculista
+      'ENTREGA': ['modalidad_entrega', 'entrega'],
+      'FORMA DE PAGO': ['forma_pago'],
+      'VENDEDOR': ['vendedor'],
+      'OCULISTA': ['dr', 'oculista'],
 
-      // fechas (si necesitás pre-cargar)
-      'FECHA': 'fecha_encarga',
-      'FECHA RETIRA': 'fecha_retira',
+      // Graduación
+      'OD ESF': ['od_esf'],
+      'OD CIL': ['od_cil'],
+      'OD EJE': ['od_eje'],
+      'OI ESF': ['oi_esf'],
+      'OI CIL': ['oi_cil'],
+      'OI EJE': ['oi_eje'],
+      'ADD': ['add'],
+      'DNP': ['dnp'],
+      'DISTANCIA FOCAL': ['distancia_focal'],
 
-      // totales (si querés mostrarlos)
-      'TOTAL': 'total',
-      'SEÑA': 'sena',
-      'SALDO': 'saldo',
+      // Obra social / descuentos
+      'OBRA SOCIAL': ['concepto_negativo', 'obra_social', 'detalle_descuento'],
+      'PRECIO OBRA SOCIAL': ['precio_descuento', 'precio_obra_social', 'descuento'],
+
+      // Totales panel derecho
+      'TOTAL': ['total'],
+      'SEÑA': ['sena', 'senia'],
+      'SALDO': ['saldo'],
+
+      // Campos varios que hoy no cargamos al iniciar edición:
+      'PDF': [],                 // (NO: fotos/galería por ahora)
+      'ENTREGADO POR': [],       // lo mostrás en historial/modal si querés
+      'CANCELO': [],             // idem
+      'FDP': [],                 // idem
+      'LISTO': [],               // estado
     };
 
-    // Transformar la fila del Sheet a { idInput: valor }
-    const dataSheet = hit.data;
-    const map = {};
-    for (const [col, val] of Object.entries(dataSheet)) {
-      const id = FIELD_MAP[col];
-      if (id) map[id] = val;
+    // Cargar campos al formulario
+    const row = hit.data;
+    let setCount = 0;
+    for (const [colName, idList] of Object.entries(FIELD_MAP)) {
+      if (!idList || idList.length === 0) continue; // los que no usamos ahora
+      const val = row[colName];
+      if (val !== undefined) {
+        if (setField(idList, val)) setCount++;
+      }
     }
 
-    // Cargar en el formulario
-    fillFormFields(map);
+    // Aseguro que el N° quede con el sufijo correcto (ej: 505...-1)
+    setField(['numero_trabajo', 'nro_trabajo', 'nro'], hit.nro);
 
     Swal.close();
-    Swal.fire('Listo', `Cargado el N° ${hit.nro}`, 'success');
+    Swal.fire('Listo', `Cargado el N° ${hit.nro}. Campos aplicados: ${setCount}`, 'success');
 
-  } catch (err){
+  } catch (err) {
     console.error(err);
     Swal.close();
     Swal.fire('Error', err.message || String(err), 'error');
