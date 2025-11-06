@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Editar trabajo • Óptica Cristal</title>
+  <link rel="icon" type="image/png" href="logo.png" />
+  <style>
+    :root{--bg:#f6f8fb;--card:#fff;--ink:#1f2937;--muted:#6b7280;--brand:#2563eb;--ok:#16a34a;--warn:#ca8a04;--err:#dc2626;border-radius:16px}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,Segoe UI,Roboto,Inter,sans-serif}
+    .wrap{max-width:980px;margin:28px auto;padding:16px}
+    .card{background:var(--card);border-radius:16px;box-shadow:0 10px 26px rgba(2,6,23,.06);padding:20px;margin-bottom:16px}
+    h1{margin:0 0 8px;font-size:22px} .muted{color:var(--muted);font-size:14px}
+    .row{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+    .col-3{grid-column:span 3} .col-4{grid-column:span 4} .col-6{grid-column:span 6} .col-8{grid-column:span 8} .col-12{grid-column:span 12}
+    label{display:block;font-size:12px;color:var(--muted);margin:8px 0 6px}
+    input,select{width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:12px;background:#fff;color:var(--ink);outline:none}
+    input[readonly], input:disabled, select:disabled{background:#f3f4f6;color:#9ca3af}
+    .btns{display:flex;gap:10px;flex-wrap:wrap}
+    button{border:0;border-radius:12px;padding:10px 14px;cursor:pointer}
+    .b-brand{background:var(--brand);color:#fff}
+    .b-ok{background:var(--ok);color:#fff}
+    .b-warn{background:var(--warn);color:#fff}
+    .b-ghost{background:#eef2ff;color:#1e40af}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;font-weight:600}
+    .pill.lock{background:#fee2e2;color:#991b1b}
+    .pill.unlock{background:#dcfce7;color:#14532d}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+    .help{font-size:12px;color:var(--muted)}
+    .hr{height:1px;background:#eef2f7;margin:12px 0}
+    .right{display:flex;justify-content:flex-end}
+    .money{text-align:right}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>Editar trabajo</h1>
+      <p class="muted">Ingresá el <strong>N° de trabajo</strong> para cargar la ficha y desbloqueá con tu contraseña para habilitar la edición.</p>
+      <div class="row">
+        <div class="col-4">
+          <label>N° de trabajo</label>
+          <input id="nro_buscar" placeholder="Ej: 50511181563" />
+        </div>
+        <div class="col-4">
+          <label>&nbsp;</label>
+          <div class="btns">
+            <button id="btnCargar" class="b-brand">Cargar</button>
+            <button id="btnLimpiar" class="b-ghost">Limpiar</button>
+          </div>
+        </div>
+        <div class="col-4 right">
+          <label>&nbsp;</label>
+          <div id="lockPill" class="pill lock">🔒 Bloqueado</div>
+        </div>
+      </div>
+      <div class="help">Endpoint lectura: <code id="readEp"></code></div>
+    </section>
+
+    <!-- Datos generales (solo lectura) -->
+    <section class="card">
+      <div class="grid">
+        <div class="col-3"><label>N° trabajo</label><input id="numero_trabajo" readonly></div>
+        <div class="col-3"><label>DNI</label><input id="dni" readonly></div>
+        <div class="col-6"><label>Apellido y nombre</label><input id="apellido" readonly></div>
+        <div class="col-4"><label>Teléfono</label><input id="telefono" readonly></div>
+        <div class="col-8"><label>Localidad</label><input id="localidad" readonly></div>
+      </div>
+    </section>
+
+    <!-- Campos editables -->
+    <section class="card">
+      <h3 style="margin:0 0 10px">Campos editables</h3>
+      <div class="grid">
+        <!-- G H -->
+        <div class="col-6"><label>Tipo de cristal (G)</label><input id="tipo_cristal" disabled></div>
+        <div class="col-3"><label>Precio cristal (H)</label><input id="precio_cristal" class="money" disabled></div>
+
+        <!-- X Y -->
+        <div class="col-6"><label>Concepto negativo / Obra social (X)</label><input id="concepto_negativo" disabled></div>
+        <div class="col-3"><label>Precio obra social (Y)</label><input id="precio_descuento" class="money" disabled></div>
+
+        <!-- L M -->
+        <div class="col-6"><label>Otro concepto (L)</label><input id="otro_concepto" disabled></div>
+        <div class="col-3"><label>Precio otro (M)</label><input id="precio_otro" class="money" disabled></div>
+
+        <!-- Graduación O..U -->
+        <div class="col-2"><label>OD ESF (O)</label><input id="od_esf" disabled></div>
+        <div class="col-2"><label>OD CIL (P)</label><input id="od_cil" disabled></div>
+        <div class="col-2"><label>OD EJE (Q)</label><input id="od_eje" disabled></div>
+        <div class="col-2"><label>OI ESF (R)</label><input id="oi_esf" disabled></div>
+        <div class="col-2"><label>OI CIL (S)</label><input id="oi_cil" disabled></div>
+        <div class="col-2"><label>OI EJE (T)</label><input id="oi_eje" disabled></div>
+        <div class="col-2"><label>ADD (U)</label><input id="add" disabled></div>
+
+        <!-- AC AF -->
+        <div class="col-3"><label>Forma de pago (AC)</label>
+          <select id="forma_pago" disabled>
+            <option value="">Elegí…</option>
+            <option>EFECTIVO</option>
+            <option>DÉBITO</option>
+            <option>CRÉDITO</option>
+            <option>VISA 3 PAGOS</option>
+            <option>TRANSFERENCIA</option>
+          </select>
+        </div>
+        <div class="col-3"><label>Vendedor (AF)</label><input id="vendedor" disabled></div>
+      </div>
+
+      <div class="hr"></div>
+      <div class="btns">
+        <button id="btnUnlock" class="b-warn">Desbloquear edición 🔓</button>
+        <button id="btnGuardar" class="b-ok" disabled>Guardar cambios</button>
+      </div>
+      <div class="help">Al desbloquear, solo estos campos quedan editables. Guardar intentará <code>updateJob</code> en el GAS de edición y, si no existe, usará el endpoint general.</div>
+    </section>
+  </main>
+
+  <script type="module">
+    // ======= CONFIG ENDPOINTS =======
+    const EDIT_URL = "https://script.google.com/macros/s/AKfycbxeMizwM-t9z0Nbz6R01yvR8YPg_uthGESDaz2wEfIROnDDsKHTFGsSrb2VN-LKBYsh/exec"; // func editar receta
+    const API_URL  = "https://script.google.com/macros/s/AKfycbzagB_jZ7niXARSbnqCVfZp3e6X9oMxSlO-u-zJCfReguIe2cXf63uZFIpSSdBvMi86rA/exec"; // general (fallback)
+
+    // ======= PASSWORD (hash SHA-256 en HEX) =======
+    // Generá tu hash en consola:
+    //  window.crypto.subtle.digest('SHA-256', new TextEncoder().encode('TU_CLAVE')).then(a=>console.log([...new Uint8Array(a)].map(b=>b.toString(16).padStart(2,'0')).join('')))
+    // Luego reemplazá el valor de abajo por el tuyo:
+    const PASSWORD_SHA256 = "ab390e57c2ec56cda0a9cb9c21dba60c5eafe22a3007c2af0aeaacfe34e5e0a2"; // <--- REEMPLAZÁ
+
+    // ======= HELPERS =======
+    const $ = s => document.querySelector(s);
+    const byId = id => document.getElementById(id);
+    const qstr = (base, params={})=>{
+      const u = new URL(base);
+      Object.entries(params).forEach(([k,v])=>{ if(v!==undefined&&v!==null&&v!=='') u.searchParams.set(k,v); });
+      return u.toString();
+    };
+    async function getJSON(url){
+      const r = await fetch(url, {cache:'no-store'});
+      if(!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.json();
+    }
+    async function sha256hex(text){
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+      return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+    }
+    function setDisabled(ids, disabled=true){
+      ids.forEach(id => { const el = byId(id); if(el) el.disabled = disabled; });
+      byId('btnGuardar').disabled = disabled;
+      const pill = byId('lockPill');
+      pill.textContent = disabled ? '🔒 Bloqueado' : '🔓 Desbloqueado';
+      pill.className = 'pill ' + (disabled?'lock':'unlock');
+    }
+    function fill(map){ Object.entries(map).forEach(([id,val])=>{ const el=byId(id); if(el){ el.value = (val??''); el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); } }); }
+
+    // ======= CAMPOS =======
+    const EDITABLE_IDS = [
+      'tipo_cristal','precio_cristal',
+      'concepto_negativo','precio_descuento',
+      'otro_concepto','precio_otro',
+      'od_esf','od_cil','od_eje','oi_esf','oi_cil','oi_eje','add',
+      'forma_pago','vendedor'
+    ];
+
+    // Map exacto: encabezado -> id
+    const MAP = {
+      'NUMERO TRABAJO':'numero_trabajo',
+      'DOCUMENTO':'dni',
+      'APELLIDO Y NOMBRE':'apellido',
+      'TELEFONO':'telefono',
+      'LOCALIDAD':'localidad',
+
+      'CRISTAL':'tipo_cristal',
+      'PRECIO CRISTAL':'precio_cristal',
+      'OTRO CONCEPTO':'otro_concepto',
+      'PRECIO OTRO':'precio_otro',
+
+      'OBRA SOCIAL':'concepto_negativo',
+      'PRECIO OBRA SOCIAL':'precio_descuento',
+
+      'OD ESF':'od_esf','OD CIL':'od_cil','OD EJE':'od_eje',
+      'OI ESF':'oi_esf','OI CIL':'oi_cil','OI EJE':'oi_eje',
+      'ADD':'add',
+
+      'FORMA DE PAGO':'forma_pago',
+      'VENDEDOR':'vendedor'
+    };
+
+    const state = { hit:null };
+
+    // ======= UI Handlers =======
+    byId('readEp').textContent = EDIT_URL;
+    byId('btnLimpiar').onclick = ()=>{ document.querySelectorAll('input,select').forEach(el=>el.value=''); setDisabled(EDITABLE_IDS,true); state.hit=null; };
+    byId('btnCargar').onclick = async ()=>{
+      try{
+        const nro = byId('nro_buscar').value.trim();
+        if(!nro) return alert('Ingresá el N° de trabajo');
+
+        const url = qstr(EDIT_URL, {action:'getJobByNumber', nro, json:1, _:Date.now()});
+        const resp = await getJSON(url);
+        if(!resp.ok) throw new Error(resp.error || 'No ok');
+        if(!resp.hits?.length) return alert('No encontrado');
+
+        const hit = resp.exact ? resp.hits[0] : resp.hits[0]; // si hay varias, podrías armar un selector
+        state.hit = hit;
+
+        // Volcar datos
+        const m = {};
+        m['numero_trabajo'] = hit.nro;
+        const row = hit.data;
+        Object.entries(MAP).forEach(([col,id])=>{ if(row[col]!==undefined) m[id]=row[col]; });
+        fill(m);
+        setDisabled(EDITABLE_IDS, true);
+        alert('Cargado. Desbloqueá para editar.');
+      }catch(err){ console.error(err); alert('Error al cargar'); }
+    };
+
+    byId('btnUnlock').onclick = async ()=>{
+      const pass = prompt('Contraseña de edición');
+      if(pass==null) return;
+      const hex = await sha256hex(pass);
+      if(hex !== PASSWORD_SHA256){ alert('Contraseña incorrecta'); return; }
+      setDisabled(EDITABLE_IDS, false);
+    };
+
+    byId('btnGuardar').onclick = async ()=>{
+      if(!state.hit) return alert('Primero cargá un trabajo');
+      const nro = byId('numero_trabajo').value.trim();
+
+      // Solo campos editables
+      const payload = {
+        action:'updateJob',
+        nro,
+        // columnas por encabezado EXACTO:
+        'CRISTAL': byId('tipo_cristal').value.trim(),
+        'PRECIO CRISTAL': byId('precio_cristal').value.trim(),
+        'OBRA SOCIAL': byId('concepto_negativo').value.trim(),
+        'PRECIO OBRA SOCIAL': byId('precio_descuento').value.trim(),
+        'OTRO CONCEPTO': byId('otro_concepto').value.trim(),
+        'PRECIO OTRO': byId('precio_otro').value.trim(),
+        'OD ESF': byId('od_esf').value.trim(),
+        'OD CIL': byId('od_cil').value.trim(),
+        'OD EJE': byId('od_eje').value.trim(),
+        'OI ESF': byId('oi_esf').value.trim(),
+        'OI CIL': byId('oi_cil').value.trim(),
+        'OI EJE': byId('oi_eje').value.trim(),
+        'ADD': byId('add').value.trim(),
+        'FORMA DE PAGO': byId('forma_pago').value.trim(),
+        'VENDEDOR': byId('vendedor').value.trim(),
+        // opcional: rowIndex si tu GAS lo usa
+        rowIndex: state.hit.rowIndex
+      };
+
+      const tryPost = async (base)=>{
+        const r = await fetch(base, {method:'POST', body: JSON.stringify(payload)});
+        if(!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json().catch(()=>({ok:true}));
+      };
+
+      try{
+        // 1) Intento GAS de edición
+        let res;
+        try { res = await tryPost(EDIT_URL); }
+        catch(_e){ /* fallback */ res = await tryPost(API_URL); }
+
+        if(res?.ok===false) throw new Error(res.error || 'Error');
+        alert('Cambios guardados ✔');
+        setDisabled(EDITABLE_IDS, true);
+      }catch(err){ console.error(err); alert('No se pudo guardar'); }
+    };
+  </script>
+</body>
+</html>
