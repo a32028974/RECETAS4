@@ -485,5 +485,162 @@ if (numero) {
       el.addEventListener('change', updateTicket);
     });
   </script>
+<script>
+/**
+ * Este helper arma un DOM oculto con los IDs que print.js espera,
+ * toma los valores desde los campos presentes en editar.html
+ * y llama a __buildPrintArea() para imprimir con el mismo diseño.
+ */
+(() => {
+  const $ = (sel) => document.querySelector(sel);
+  const byId = (id) => document.getElementById(id);
+
+  // Busca un valor en varios selectores posibles (por si tus IDs difieren)
+  function pick(...sels) {
+    for (const s of sels) {
+      const el = typeof s === 'string' ? $(s) : s;
+      if (el) {
+        if (el.tagName === 'SELECT') {
+          const opt = el.options[el.selectedIndex];
+          return (opt?.textContent || opt?.value || '').trim();
+        }
+        return (el.value || '').trim();
+      }
+    }
+    return '';
+  }
+
+  // Crea (o limpia) el contenedor oculto estándar para print.js
+  function ensureShadowForm() {
+    let wrap = byId('__print_shadow__');
+    if (!wrap) {
+      wrap = document.createElement('div');
+      wrap.id = '__print_shadow__';
+      wrap.style.cssText = 'position:fixed;left:-9999px;top:-9999px;visibility:hidden;';
+      document.body.appendChild(wrap);
+    }
+    wrap.innerHTML = `
+      <input id="numero_trabajo">
+      <input id="fecha">
+      <select id="entrega-select"><option></option></select>
+      <input id="fecha_retira">
+      <input id="dni">
+      <input id="nombre">
+      <input id="telefono">
+      <input id="localidad">
+
+      <input id="cristal">
+      <input id="precio_cristal">
+      <input id="obra_social">
+      <input id="importe_obra_social">
+
+      <input id="numero_armazon">
+      <input id="armazon_detalle">
+      <input id="precio_armazon">
+
+      <input id="otro_concepto">
+      <input id="precio_otro">
+
+      <input id="vendedor">
+      <input id="forma_pago">
+
+      <select id="distancia_focal"><option></option></select>
+
+      <select id="od_esf"></select>
+      <select id="od_cil"></select>
+      <input  id="od_eje">
+      <select id="oi_esf"></select>
+      <select id="oi_cil"></select>
+      <input  id="oi_eje">
+
+      <input id="dnp">
+      <input id="add">
+      <input id="dr">
+
+      <!-- seña hidden (print.js la usa si está) -->
+      <input id="sena" value="0">
+      <!-- backup visible (por las dudas) -->
+      <input id="seniaInput" value="0">
+      <!-- total/saldo (print.js no los requiere para render, los calcula) -->
+      <input id="total" value="0">
+      <input id="saldo" value="0">
+    `;
+    return wrap;
+  }
+
+  // Copiá aquí las correspondencias desde tus campos de "editar"
+  function fillShadowFromEditar() {
+    const w = ensureShadowForm();
+
+    // N° trabajo, fechas y cabecera
+    byId('numero_trabajo').value = pick('#nroTrabajo', '#numTrabajo', '#numero_trabajo', '[name="numero_trabajo"]');
+    byId('fecha').value          = pick('#fecha', '[name="fecha"]');
+    // "entrega-select" es un SELECT: le seteo el texto en su única opción
+    byId('entrega-select').options[0].textContent = pick('#entrega', '#modalidad', '#entrega-select');
+    byId('fecha_retira').value   = pick('#fechaRetira', '#fecha_retira', '[name="fecha_retira"]');
+
+    // Identificación cliente
+    byId('dni').value       = pick('#dni', '[name="dni"]');
+    byId('nombre').value    = pick('#nombre', '[name="nombre"]');
+    byId('telefono').value  = pick('#telefono', '[name="telefono"]');
+    byId('localidad').value = pick('#localidad', '[name="localidad"]');
+
+    // Productos / precios
+    byId('cristal').value           = pick('#tipoCristal', '#cristal', '[name="cristal"]');
+    byId('precio_cristal').value    = pick('#precioCristal', '#precio_cristal', '[name="precio_cristal"]');
+    byId('obra_social').value       = pick('#conceptoNegativo', '#obra_social', '[name="obra_social"]');
+    byId('importe_obra_social').value = pick('#precioObraSocial', '#importe_obra_social', '[name="importe_obra_social"]');
+
+    byId('numero_armazon').value    = pick('#nArmazon', '#numero_armazon', '[name="numero_armazon"]');
+    byId('armazon_detalle').value   = pick('#detalleArmazon', '#armazon_detalle', '[name="armazon_detalle"]');
+    byId('precio_armazon').value    = pick('#precioArmazon', '#precio_armazon', '[name="precio_armazon"]');
+
+    byId('otro_concepto').value     = pick('#otroConcepto', '#otro_concepto', '[name="otro_concepto"]');
+    byId('precio_otro').value       = pick('#precioOtro', '#precio_otro', '[name="precio_otro"]');
+
+    // Vendedor / pago
+    byId('vendedor').value          = pick('#vendedor', '[name="vendedor"]');
+    byId('forma_pago').value        = pick('#formaPago', '#forma_pago', '[name="forma_pago"]');
+
+    // Datos ópticos
+    byId('distancia_focal').options[0].textContent = pick('#distanciaFocal', '#distancia_focal');
+    // OD
+    byId('od_esf').innerHTML = `<option>${pick('#od_esf', '[name="od_esf"]')||''}</option>`;
+    byId('od_cil').innerHTML = `<option>${pick('#od_cil', '[name="od_cil"]')||''}</option>`;
+    byId('od_eje').value     = pick('#od_eje', '[name="od_eje"]');
+    // OI
+    byId('oi_esf').innerHTML = `<option>${pick('#oi_esf', '[name="oi_esf"]')||''}</option>`;
+    byId('oi_cil').innerHTML = `<option>${pick('#oi_cil', '[name="oi_cil"]')||''}</option>`;
+    byId('oi_eje').value     = pick('#oi_eje', '[name="oi_eje"]');
+
+    byId('dnp').value = pick('#dnp', '[name="dnp"]');
+    byId('add').value = pick('#add', '[name="add"]');
+    byId('dr').value  = pick('#dr', '[name="dr"]');
+
+    // Seña (si en editar usás otro id, mapealo acá)
+    const senia = pick('#sena', '#senia', '#seniaInput', '[name="sena"]', '[name="seniaInput"]') || '0';
+    byId('sena').value = senia;
+    byId('seniaInput').value = senia;
+  }
+
+  byId('btn-reimprimir')?.addEventListener('click', () => {
+    try {
+      fillShadowFromEditar();
+      if (typeof window.__buildPrintArea === 'function') {
+        window.__buildPrintArea(); // usa print.js (ticket A4 + talón + barcode)
+      } else {
+        alert('No se encontró print.js. Agregá <script src="js/print.js"></script> en editar.html');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('No se pudo preparar la reimpresión.');
+    }
+  });
+})();
+</script>
+
+  
+  <button id="btn-reimprimir" type="button" class="secondary">Reimprimir</button>
+
 </body>
 </html>
