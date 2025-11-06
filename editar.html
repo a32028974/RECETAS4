@@ -26,7 +26,7 @@
         <div class="brand">
           <img src="logo.png" alt="Óptica Cristal" />
           <div>
-            <h1> v8 Editar trabajo</h1>
+            <h1> v9 Editar trabajo</h1>
             <div class="small muted">Cargá el N° de trabajo y desbloqueá con tu contraseña para habilitar edición.</div>
           </div>
         </div>
@@ -231,6 +231,16 @@
     const EDIT_URL = "https://script.google.com/macros/s/AKfycbxIOfNJwvsHqb-nE36EbtZE4EYw1l-BbUGptxj335dK5sSusgT9X_MBzwgjwRdOkBp4/exec";
 
     /********** HELPERS **********/
+    const params = new URLSearchParams(location.search);
+const numero = params.get("num");
+if (numero) {
+  document.getElementById("numero_trabajo").value = numero;
+  // si querés que dispare automáticamente el botón cargar:
+  document.getElementById("btn-cargar").click();
+}
+    
+    
+    
     const $ = s => document.querySelector(s);
     const byId = id => document.getElementById(id);
     const fmtMoney = v => {
