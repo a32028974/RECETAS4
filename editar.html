@@ -5,145 +5,279 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Editar trabajo • Óptica Cristal</title>
   <link rel="icon" type="image/png" href="logo.png" />
+  <!-- Tus estilos globales (los que me pasaste) -->
+  <link rel="stylesheet" href="css/estilos.css?v=2025-11-06" />
   <style>
-    :root{--bg:#f6f8fb;--card:#fff;--ink:#1f2937;--muted:#6b7280;--brand:#2563eb;--ok:#16a34a;--warn:#ca8a04;--err:#dc2626}
-    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,Segoe UI,Roboto,Inter,sans-serif}
-    .wrap{max-width:980px;margin:28px auto;padding:16px}
-    .card{background:var(--card);border-radius:16px;box-shadow:0 10px 26px rgba(2,6,23,.06);padding:20px;margin-bottom:16px}
-    h1{margin:0 0 8px;font-size:22px} .muted{color:var(--muted);font-size:14px}
-    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
-    .col-2{grid-column:span 2}.col-3{grid-column:span 3}.col-4{grid-column:span 4}.col-6{grid-column:span 6}.col-8{grid-column:span 8}.col-12{grid-column:span 12}
-    label{display:block;font-size:12px;color:var(--muted);margin:8px 0 6px}
-    input,select{width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:12px;background:#fff;color:var(--ink);outline:none}
-    input[readonly], input:disabled, select:disabled{background:#f3f4f6;color:#9ca3af}
-    .btns{display:flex;gap:10px;flex-wrap:wrap}
-    button{border:0;border-radius:12px;padding:10px 14px;cursor:pointer}
-    .b-brand{background:var(--brand);color:#fff}
-    .b-ok{background:var(--ok);color:#fff}
-    .b-warn{background:var(--warn);color:#fff}
-    .b-ghost{background:#eef2ff;color:#1e40af}
-    .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;font-weight:600}
-    .pill.lock{background:#fee2e2;color:#991b1b}
-    .pill.unlock{background:#dcfce7;color:#14532d}
-    .hr{height:1px;background:#eef2f7;margin:12px 0}
-    .right{display:flex;justify-content:flex-end}
-    .money{text-align:right}
-    .auth{display:flex;gap:10px;flex-wrap:wrap}
-    .auth input{max-width:220px}
+    /* Ajustes mínimos específicos del editor */
+    .hdr-actions { display:flex; gap:8px; flex-wrap:wrap; }
+    .pill.lock{ background:#fee2e2; color:#991b1b; }
+    .pill.unlock{ background:#dcfce7; color:#14532d; }
+    .sm { font-size:12px; color:var(--muted); }
+    .money input { text-align:right; }
+    .right { justify-self: end; }
   </style>
 </head>
 <body>
   <main class="wrap">
+
+    <!-- ====== ENCABEZADO ====== -->
     <section class="card">
-      <h1>Editar trabajo</h1>
-      <p class="muted">Ingresá el <strong>N° de trabajo</strong> para cargar la ficha. Desbloqueá con tu contraseña para habilitar la edición.</p>
-      <div class="grid">
-        <div class="col-4">
-          <label>N° de trabajo</label>
-          <input id="nro_buscar" placeholder="Ej: 50511181563" />
-        </div>
-        <div class="col-4">
-          <label>&nbsp;</label>
-          <div class="btns">
-            <button id="btnCargar" class="b-brand">Cargar</button>
-            <button id="btnLimpiar" class="b-ghost">Limpiar</button>
+      <div class="title-row">
+        <div class="brand">
+          <img src="logo.png" alt="Óptica Cristal" />
+          <div>
+            <h1> v7 Editar trabajo</h1>
+            <div class="small muted">Cargá el N° de trabajo y desbloqueá con tu contraseña para habilitar edición.</div>
           </div>
         </div>
-        <div class="col-4 right">
-          <label>&nbsp;</label>
-          <div id="lockPill" class="pill lock">🔒 Bloqueado</div>
+        <div class="hdr-actions">
+          <span id="lockPill" class="pill lock">🔒 Bloqueado</span>
         </div>
       </div>
-      <div class="muted" style="margin-top:6px;">Endpoint lectura: <code id="readEp"></code></div>
-    </section>
 
-    <!-- Datos generales (solo lectura) -->
-    <section class="card">
-      <div class="grid">
-        <div class="col-3"><label>N° trabajo</label><input id="numero_trabajo" readonly></div>
-        <div class="col-3"><label>DNI</label><input id="dni" readonly></div>
-        <div class="col-6"><label>Apellido y nombre</label><input id="apellido" readonly></div>
-        <div class="col-4"><label>Teléfono</label><input id="telefono" readonly></div>
-        <div class="col-8"><label>Localidad</label><input id="localidad" readonly></div>
-      </div>
-    </section>
-
-    <!-- Campos editables -->
-    <section class="card">
-      <h3 style="margin:0 0 10px">Campos editables</h3>
-      <div class="grid">
-        <!-- G H -->
-        <div class="col-6"><label>Tipo de cristal (G)</label><input id="tipo_cristal" disabled></div>
-        <div class="col-3"><label>Precio cristal (H)</label><input id="precio_cristal" class="money" disabled></div>
-
-        <!-- X Y -->
-        <div class="col-6"><label>Concepto negativo / Obra social (X)</label><input id="concepto_negativo" disabled></div>
-        <div class="col-3"><label>Precio obra social (Y)</label><input id="precio_descuento" class="money" disabled></div>
-
-        <!-- L M -->
-        <div class="col-6"><label>Otro concepto (L)</label><input id="otro_concepto" disabled></div>
-        <div class="col-3"><label>Precio otro (M)</label><input id="precio_otro" class="money" disabled></div>
-
-        <!-- Graduación O..U -->
-        <div class="col-2"><label>OD ESF (O)</label><input id="od_esf" disabled></div>
-        <div class="col-2"><label>OD CIL (P)</label><input id="od_cil" disabled></div>
-        <div class="col-2"><label>OD EJE (Q)</label><input id="od_eje" disabled></div>
-        <div class="col-2"><label>OI ESF (R)</label><input id="oi_esf" disabled></div>
-        <div class="col-2"><label>OI CIL (S)</label><input id="oi_cil" disabled></div>
-        <div class="col-2"><label>OI EJE (T)</label><input id="oi_eje" disabled></div>
-        <div class="col-2"><label>ADD (U)</label><input id="add" disabled></div>
-
-        <!-- AC AF -->
-        <div class="col-3"><label>Forma de pago (AC)</label>
-          <select id="forma_pago" disabled>
-            <option value="">Elegí…</option>
-            <option>EFECTIVO</option>
-            <option>DÉBITO</option>
-            <option>CRÉDITO</option>
-            <option>VISA 3 PAGOS</option>
-            <option>TRANSFERENCIA</option>
-          </select>
-        </div>
-        <div class="col-3"><label>Vendedor (AF)</label><input id="vendedor" disabled></div>
-      </div>
-
-      <div class="hr"></div>
-
-      <!-- Autenticación (solo contraseña) -->
-      <div class="auth">
+      <div class="row cols-4" style="margin-top:10px">
         <div>
-          <label>Contraseña</label>
-          <input id="pass" type="password" placeholder="••••••••" />
+          <label>N° de trabajo</label>
+          <input id="nro_buscar" class="mono" placeholder="Ej: 50511181563" />
+        </div>
+        <div class="right">
+          <label>&nbsp;</label>
+          <div class="actions">
+            <button id="btnCargar">Cargar</button>
+            <button id="btnLimpiar" class="ghost">Limpiar</button>
+          </div>
+        </div>
+        <div class="colspan"></div>
+        <div class="right sm">
+          Endpoint: <span class="mono" id="readEp"></span>
         </div>
       </div>
+    </section>
 
-      <div class="btns" style="margin-top:10px">
-        <button id="btnUnlock" class="b-warn">Desbloquear edición 🔓</button>
-        <button id="btnGuardar" class="b-ok" disabled>Guardar cambios</button>
+    <!-- ====== LAYOUT PRINCIPAL (como cargamos): form a la izquierda / ticket a la derecha ====== -->
+    <section class="grid two">
+      <!-- ========= COLUMNA IZQUIERDA ========= -->
+      <div class="card">
+
+        <!-- Datos generales (solo lectura) -->
+        <div class="row cols-4">
+          <div>
+            <label>N° trabajo</label>
+            <input id="numero_trabajo" class="mono" readonly />
+          </div>
+          <div>
+            <label>DNI</label>
+            <input id="dni" class="mono" readonly />
+          </div>
+          <div class="colspan" style="grid-column: span 2;">
+            <label>Apellido y nombre</label>
+            <input id="apellido" readonly />
+          </div>
+        </div>
+
+        <div class="row cols-4">
+          <div>
+            <label>Teléfono</label>
+            <input id="telefono" readonly />
+          </div>
+          <div class="colspan" style="grid-column: span 3;">
+            <label>Localidad</label>
+            <input id="localidad" readonly />
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- Campos editables que me pediste -->
+        <div class="row cols-4">
+          <div class="colspan" style="grid-column: span 3;">
+            <label>Tipo de cristal (G)</label>
+            <input id="tipo_cristal" disabled placeholder="Monofocal / Bifocal / etc." />
+          </div>
+          <div>
+            <label>Precio cristal (H)</label>
+            <div class="money"><input id="precio_cristal" disabled placeholder="0" /></div>
+          </div>
+        </div>
+
+        <div class="row cols-4">
+          <div class="colspan" style="grid-column: span 3;">
+            <label>Concepto negativo / Obra social (X)</label>
+            <input id="concepto_negativo" disabled placeholder="Ej: O.S. o descuento" />
+          </div>
+          <div>
+            <label>Precio obra social (Y)</label>
+            <div class="money"><input id="precio_descuento" disabled placeholder="0" /></div>
+          </div>
+        </div>
+
+        <div class="row cols-4">
+          <div class="colspan" style="grid-column: span 3;">
+            <label>Otro concepto (L)</label>
+            <input id="otro_concepto" disabled placeholder="Ej: tratamiento" />
+          </div>
+          <div>
+            <label>Precio otro (M)</label>
+            <div class="money"><input id="precio_otro" disabled placeholder="0" /></div>
+          </div>
+        </div>
+
+        <div class="row cols-4">
+          <div>
+            <label>OD ESF (O)</label>
+            <input id="od_esf" disabled placeholder="0.00" />
+          </div>
+          <div>
+            <label>OD CIL (P)</label>
+            <input id="od_cil" disabled placeholder="0.00" />
+          </div>
+          <div>
+            <label>OD EJE (Q)</label>
+            <input id="od_eje" disabled placeholder="EJE" />
+          </div>
+          <div>
+            <label>ADD (U)</label>
+            <input id="add" disabled placeholder="0.00" />
+          </div>
+        </div>
+
+        <div class="row cols-4">
+          <div>
+            <label>OI ESF (R)</label>
+            <input id="oi_esf" disabled placeholder="0.00" />
+          </div>
+          <div>
+            <label>OI CIL (S)</label>
+            <input id="oi_cil" disabled placeholder="0.00" />
+          </div>
+          <div>
+            <label>OI EJE (T)</label>
+            <input id="oi_eje" disabled placeholder="EJE" />
+          </div>
+          <div>
+            <label>Vendedor (AF)</label>
+            <input id="vendedor" disabled placeholder="JUAN / LUCAS / ..." />
+          </div>
+        </div>
+
+        <div class="row cols-4">
+          <div>
+            <label>Forma de pago (AC)</label>
+            <select id="forma_pago" disabled>
+              <option value="">Elegí una</option>
+              <option>EFECTIVO</option>
+              <option>DÉBITO</option>
+              <option>CRÉDITO</option>
+              <option>VISA 3 PAGOS</option>
+              <option>TRANSFERENCIA</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- Autenticación simple (contraseña en hoja externa) -->
+        <div class="row cols-4">
+          <div>
+            <label>Contraseña</label>
+            <input id="pass" type="password" placeholder="••••••••" />
+          </div>
+          <div class="right">
+            <label>&nbsp;</label>
+            <div class="actions">
+              <button id="btnUnlock" class="secondary">Desbloquear edición</button>
+              <button id="btnGuardar" class="ghost" disabled>Guardar cambios</button>
+            </div>
+          </div>
+        </div>
+
       </div>
-      <div class="muted">Se habilitan únicamente los campos listados arriba. El guardado actualiza la fila en Google Sheets.</div>
+
+      <!-- ========= COLUMNA DERECHA (Ticket de totales parecido) ========= -->
+      <aside class="card">
+        <div class="totals-ticket">
+          <div class="tt-title">Desglose</div>
+
+          <div class="tt-row"><span>Armazón</span><span class="tt-val mono" id="tt_armazon">$ 0</span></div>
+          <div class="tt-row"><span>Cristal</span><span class="tt-val mono" id="tt_cristal">$ 0</span></div>
+          <div class="tt-row"><span>Otro concepto</span><span class="tt-val mono" id="tt_otro">$ 0</span></div>
+
+          <div class="tt-row subtotal"><span>Subtotal</span><span class="tt-val mono" id="tt_subtotal">$ 0</span></div>
+
+          <div class="tt-row rest"><span>– Descuento / O.S.</span><span class="tt-val mono" id="tt_descuento">– $ 0</span></div>
+          <div class="tt-row rest"><span>– Seña</span><span class="tt-val mono" id="tt_senia">– $ 0</span></div>
+
+          <div class="tt-row total" style="margin-top:6px;">
+            <span>Saldo a pagar</span>
+            <span class="tt-big mono" id="tt_total">$ 0</span>
+          </div>
+
+          <div class="tt-meter"><div id="tt_meter"></div></div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- Galería (para el futuro, hoy sin fotos) -->
+        <div>
+          <div class="small muted" style="margin-bottom:6px;">Galería</div>
+          <div class="galeria" id="galeria"></div>
+        </div>
+      </aside>
     </section>
   </main>
 
   <script type="module">
-    // ======= ENDPOINT =======
-    const EDIT_URL = "https://script.google.com/macros/s/AKfycbwyk9VrwLPcslHGTE1kGSYzt6Ts-l10nkvEU1olvjHkvCNQVYSj_RRmAJ1ACR2mDpM/exec";
+    /********** CONFIG **********/
+    const EDIT_URL = "https://script.google.com/macros/s/AKfycbzehfzUoOJc9H1yxZMIjni5F0jzaRIOVSc5uuNjNgHHiEG4r6byC_edJOEmU6Wn8QD4/exec";
 
-    // ======= HELPERS =======
+    /********** HELPERS **********/
     const $ = s => document.querySelector(s);
     const byId = id => document.getElementById(id);
+    const fmtMoney = v => {
+      const n = Number(String(v).replace(/[^\d.-]/g,'') || 0);
+      return n.toLocaleString('es-AR', {style:'currency', currency:'ARS', maximumFractionDigits:0});
+    };
     const qstr = (base, params={})=>{
       const u = new URL(base);
-      Object.entries(params).forEach(([k,v])=>{ if(v!==undefined&&v!==null&&v!=='') u.searchParams.set(k,v); });
+      Object.entries(params).forEach(([k,v])=>{
+        if(v!==undefined && v!==null && v!=='') u.searchParams.set(k,v);
+      });
       return u.toString();
     };
-    async function getJSON(url){ const r = await fetch(url, {cache:'no-store'}); if(!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); }
-    async function postJSON(url, data){ const r = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)}); if(!r.ok) throw new Error(`HTTP ${r.status}`); return r.json().catch(()=>({ok:true})); }
-    async function sha256hex(text){ const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)); return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join(''); }
-    function setDisabled(ids, disabled=true){ ids.forEach(id => { const el = byId(id); if(el) el.disabled = disabled; }); byId('btnGuardar').disabled = disabled; const pill = byId('lockPill'); pill.textContent = disabled ? '🔒 Bloqueado' : '🔓 Desbloqueado'; pill.className = 'pill ' + (disabled?'lock':'unlock'); }
-    function fill(map){ Object.entries(map).forEach(([id,val])=>{ const el=byId(id); if(el){ el.value = (val??''); el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); } }); }
+    async function getJSON(url){
+      const r = await fetch(url, { cache:'no-store' });
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      return r.json();
+    }
+    // Evita preflight (CORS): application/x-www-form-urlencoded
+    async function postForm(url, data){
+      const body = new URLSearchParams();
+      for (const [k,v] of Object.entries(data)) {
+        body.append(k, typeof v === 'string' ? v : JSON.stringify(v));
+      }
+      const r = await fetch(url, { method:'POST', body });
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      return r.json();
+    }
+    function setDisabled(ids, disabled=true){
+      ids.forEach(id => { const el = byId(id); if(el) el.disabled = disabled; });
+      byId('btnGuardar').disabled = disabled;
+      const pill = byId('lockPill');
+      pill.textContent = disabled ? '🔒 Bloqueado' : '🔓 Desbloqueado';
+      pill.className = 'pill ' + (disabled ? 'lock' : 'unlock');
+    }
+    function fill(map){
+      Object.entries(map).forEach(([id,val])=>{
+        const el = byId(id);
+        if (el) { el.value = (val ?? ''); }
+      });
+    }
+    function numberLike(v){
+      const n = Number(String(v).replace(/[^\d.-]/g,''));
+      return isFinite(n) ? n : 0;
+    }
 
-    // ======= CAMPOS =======
+    /********** CAMPOS **********/
     const EDITABLE_IDS = [
       'tipo_cristal','precio_cristal',
       'concepto_negativo','precio_descuento',
@@ -151,12 +285,15 @@
       'od_esf','od_cil','od_eje','oi_esf','oi_cil','oi_eje','add',
       'forma_pago','vendedor'
     ];
+
     const MAP = {
+      // solo lectura
       'NUMERO TRABAJO':'numero_trabajo',
       'DOCUMENTO':'dni',
       'APELLIDO Y NOMBRE':'apellido',
       'TELEFONO':'telefono',
       'LOCALIDAD':'localidad',
+      // editables
       'CRISTAL':'tipo_cristal',
       'PRECIO CRISTAL':'precio_cristal',
       'OBRA SOCIAL':'concepto_negativo',
@@ -167,72 +304,86 @@
       'OI ESF':'oi_esf','OI CIL':'oi_cil','OI EJE':'oi_eje',
       'ADD':'add',
       'FORMA DE PAGO':'forma_pago',
-      'VENDEDOR':'vendedor'
+      'VENDEDOR':'vendedor',
+      // para ticket (si existen en tu sheet)
+      'PRECIO ARMAZON':'_tt_armazon',
+      'SEÑA':'_tt_senia',
+      'TOTAL':'_tt_total'
     };
 
-    // ======= ESTADO =======
-    const state = { hit:null, passHash:null };
+    const state = { hit:null, pass:null };
 
-    // ======= UI =======
+    /********** INIT **********/
     byId('readEp').textContent = EDIT_URL;
-    byId('btnLimpiar').onclick = ()=>{ document.querySelectorAll('input,select').forEach(el=>el.value=''); setDisabled(EDITABLE_IDS,true); state.hit=null; state.passHash=null; };
 
-    // Carga automática si viene ?nro= en la URL
-    (function autoLoadFromURL(){
-      const nro = new URLSearchParams(location.search).get("nro");
-      if(nro){ byId('nro_buscar').value = nro; byId('btnCargar').click(); }
+    // Autocargar si viene ?nro=
+    (function(){
+      const nro = new URLSearchParams(location.search).get('nro');
+      if (nro) { byId('nro_buscar').value = nro; }
     })();
+
+    // Limpiar
+    byId('btnLimpiar').onclick = ()=>{
+      document.querySelectorAll('input,select').forEach(el=>el.value='');
+      setDisabled(EDITABLE_IDS, true);
+      state.hit = null; state.pass = null;
+      updateTicket();
+    };
 
     // Cargar trabajo
     byId('btnCargar').onclick = async ()=>{
-      try{
-        const nro = byId('nro_buscar').value.trim();
-        if(!nro) return alert('Ingresá el N° de trabajo');
+      const nro = byId('nro_buscar').value.trim();
+      if (!nro) return alert('Ingresá el N° de trabajo');
 
-        const url = qstr(EDIT_URL, {action:'getJobByNumber', nro, json:1, _:Date.now()});
-        const resp = await getJSON(url);
-        if(!resp.ok) throw new Error(resp.error || 'No ok');
-        if(!resp.hits?.length) return alert('No encontrado');
+      try{
+        const resp = await getJSON(qstr(EDIT_URL, { action:'getJobByNumber', nro, _:Date.now() }));
+        if (!resp.ok) throw new Error(resp.error || 'Sin respuesta');
+        if (!resp.hits?.length) return alert('No encontrado');
 
         const hit = resp.hits[0];
         state.hit = hit;
 
+        // Mapeo a inputs
         const m = {'numero_trabajo': hit.nro};
-        const row = hit.data;
-        Object.entries(MAP).forEach(([col,id])=>{ if(row[col]!==undefined) m[id]=row[col]; });
+        const row = hit.data || {};
+        Object.entries(MAP).forEach(([col,id])=>{
+          if (row[col] !== undefined && !id.startsWith('_')) m[id] = row[col];
+        });
         fill(m);
+
+        // Ticket inicial
+        updateTicketFromRow(row);
+
+        // Bloqueado por defecto
         setDisabled(EDITABLE_IDS, true);
-      }catch(err){ console.error(err); alert('Error al cargar'); }
-    };
-
-    // Desbloquear (solo password)
-    byId('btnUnlock').onclick = async ()=>{
-      const pass = byId('pass').value;
-      if(!pass) return alert('Ingresá la contraseña');
-
-      const passHash = await sha256hex(pass);
-
-      try{
-        const res = await postJSON(EDIT_URL, { action:'authCheck', passHash });
-        if(res?.ok !== true) return alert('Contraseña incorrecta');
-        state.passHash = passHash;
-        setDisabled(EDITABLE_IDS, false);
-      }catch(e){
-        alert('No se pudo autenticar'); console.error(e);
+      }catch(err){
+        console.error(err);
+        alert('Error al cargar');
       }
     };
 
-    // Guardar cambios
+    // Desbloquear (clave en hoja externa)
+    byId('btnUnlock').onclick = async ()=>{
+      const clave = byId('pass').value.trim();
+      if(!clave) return alert('Ingresá la contraseña');
+
+      try{
+        const res = await postForm(EDIT_URL, { action:'authCheck', clave });
+        if(res?.ok !== true) return alert('Contraseña incorrecta');
+        state.pass = clave;
+        setDisabled(EDITABLE_IDS, false);
+      }catch(e){
+        console.error(e);
+        alert('No se pudo autenticar');
+      }
+    };
+
+    // Guardar
     byId('btnGuardar').onclick = async ()=>{
       if(!state.hit) return alert('Primero cargá un trabajo');
-      if(!state.passHash) return alert('Desbloqueá con la contraseña');
+      if(!state.pass) return alert('Desbloqueá con la contraseña');
 
-      const nro = byId('numero_trabajo').value.trim();
-      const payload = {
-        action:'updateJob',
-        nro,
-        passHash: state.passHash,  // auth
-        // columnas editables por encabezado EXACTO:
+      const cambios = {
         'CRISTAL': byId('tipo_cristal').value.trim(),
         'PRECIO CRISTAL': byId('precio_cristal').value.trim(),
         'OBRA SOCIAL': byId('concepto_negativo').value.trim(),
@@ -247,17 +398,82 @@
         'OI EJE': byId('oi_eje').value.trim(),
         'ADD': byId('add').value.trim(),
         'FORMA DE PAGO': byId('forma_pago').value.trim(),
-        'VENDEDOR': byId('vendedor').value.trim(),
-        // opcional: rowIndex si lo querés usar en el GAS (hoy no es necesario)
-        rowIndex: state.hit.rowIndex
+        'VENDEDOR': byId('vendedor').value.trim()
       };
 
       try{
-        const res = await postJSON(EDIT_URL, payload);
-        if(res?.ok === true){ alert('Cambios guardados ✔'); setDisabled(EDITABLE_IDS, true); }
-        else { alert('Error: ' + (res?.error || 'No se pudo actualizar')); }
-      }catch(err){ console.error(err); alert('No se pudo guardar'); }
+        const res = await postForm(EDIT_URL, {
+          action:'updateJob',
+          nro: byId('numero_trabajo').value.trim(),
+          clave: state.pass,
+          cambios
+        });
+        if(res?.ok === true){
+          alert('Cambios guardados ✔');
+          setDisabled(EDITABLE_IDS, true);
+          // refresco ticket con valores actuales
+          updateTicket();
+        } else {
+          alert('Error: ' + (res?.error || 'No se pudo actualizar'));
+        }
+      }catch(err){
+        console.error(err);
+        alert('No se pudo guardar');
+      }
     };
+
+    /********** TICKET (visual) **********/
+    function updateTicketFromRow(row){
+      const armazon  = numberLike(row['PRECIO ARMAZON']);
+      const cristal  = numberLike(row['PRECIO CRISTAL']);
+      const otro     = numberLike(row['PRECIO OTRO']);
+      const desc     = numberLike(row['PRECIO OBRA SOCIAL']);
+      const senia    = numberLike(row['SEÑA']);
+      const subtotal = armazon + cristal + otro;
+      const total    = subtotal - desc - senia;
+
+      byId('tt_armazon').textContent  = fmtMoney(armazon);
+      byId('tt_cristal').textContent  = fmtMoney(cristal);
+      byId('tt_otro').textContent     = fmtMoney(otro);
+      byId('tt_subtotal').textContent = fmtMoney(subtotal);
+      byId('tt_descuento').textContent= '– ' + fmtMoney(desc);
+      byId('tt_senia').textContent    = '– ' + fmtMoney(senia);
+      byId('tt_total').textContent    = fmtMoney(total);
+
+      const meter = byId('tt_meter');
+      const pct = subtotal>0 ? Math.max(0, Math.min(100, (senia/subtotal)*100)) : 0;
+      meter.style.width = pct.toFixed(0) + '%';
+    }
+
+    function updateTicket(){
+      // recalcula con lo que haya cargado en inputs del editor
+      const armazon  = numberLike(0); // no se edita acá
+      const cristal  = numberLike(byId('precio_cristal').value);
+      const otro     = numberLike(byId('precio_otro').value);
+      const desc     = numberLike(byId('precio_descuento').value);
+      const senia    = numberLike(0); // no se edita acá
+      const subtotal = armazon + cristal + otro;
+      const total    = subtotal - desc - senia;
+
+      byId('tt_armazon').textContent  = fmtMoney(armazon);
+      byId('tt_cristal').textContent  = fmtMoney(cristal);
+      byId('tt_otro').textContent     = fmtMoney(otro);
+      byId('tt_subtotal').textContent = fmtMoney(subtotal);
+      byId('tt_descuento').textContent= '– ' + fmtMoney(desc);
+      byId('tt_senia').textContent    = '– ' + fmtMoney(senia);
+      byId('tt_total').textContent    = fmtMoney(total);
+
+      const meter = byId('tt_meter');
+      const pct = subtotal>0 ? Math.max(0, Math.min(100, (senia/subtotal)*100)) : 0;
+      meter.style.width = pct.toFixed(0) + '%';
+    }
+
+    // actualizar ticket en vivo si toca importes
+    ['precio_cristal','precio_otro','precio_descuento'].forEach(id=>{
+      const el = byId(id);
+      el.addEventListener('input', updateTicket);
+      el.addEventListener('change', updateTicket);
+    });
   </script>
 </body>
 </html>
