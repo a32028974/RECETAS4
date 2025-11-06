@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Óptica Cristal * Carga de trabajos</title>
+  <title>Óptica Cristal • Carga de trabajos</title>
 
   <meta name="theme-color" content="#111827" />
   <link rel="icon" type="image/png" href="logo.png" />
@@ -30,7 +30,7 @@
         <div class="brand">
           <img src="logo.png" alt="Óptica Cristal" />
           <div>
-            <h1>Optica Cristal</h1>
+            <h1>v14 Óptica Cristal</h1>
             <p class="muted small">San Miguel • Argentina</p>
           </div>
         </div>
@@ -41,9 +41,9 @@
                    inputmode="numeric" autocomplete="off" />
           </div>
 
-          <!-- MODO EDICIÓN -->
+          <!-- Badge MODO EDICIÓN (no se usa en index, pero lo dejamos por compat) -->
           <div style="align-self:end; display:flex; gap:.5rem; align-items:center;">
-            <input type="hidden" id="edit_row" value="" />
+            <input type="hidden" id="numero_trabajo_hidden" name="numero_trabajo_hidden" />
             <span id="edit_badge" style="display:none;padding:4px 8px;border-radius:6px;background:#fde047;color:#1f2937;font-weight:600;">
               MODO EDICIÓN
             </span>
@@ -54,7 +54,6 @@
 
     <!-- Formulario principal -->
     <form id="formulario" class="grid two" autocomplete="off">
-      <input type="hidden" id="numero_trabajo_hidden" name="numero_trabajo_hidden" />
       <input type="hidden" id="pack_url" name="pdf" />
 
       <!-- Columna izquierda -->
@@ -67,6 +66,7 @@
           <div>
             <label for="entrega-select" class="small">Modalidad de entrega</label>
             <select id="entrega-select" name="entrega">
+              <option value="" selected disabled>Elegí una opción</option>
               <option value="7">Stock (7 días)</option>
               <option value="3">Urgente (3 días)</option>
               <option value="15">Laboratorio (15 días)</option>
@@ -145,13 +145,13 @@
             <label for="distancia_focal">Distancia focal <span class="small muted">(obligatorio)</span></label>
             <select id="distancia_focal" name="distancia_focal" required>
               <option value="" selected disabled>Elegí una opción</option>
-              <option>Monofocal Lejos</option>
-              <option>Monofocal Cerca</option>
-              <option>Bifocal</option>
-              <option>Multifocal</option>
-              <option>Ocupacional</option>
-              <option>Monofocal Intermedia</option>
-              <option>Sobre LC</option>
+              <option>MONOFOCAL LEJOS</option>
+              <option>MONOFOCAL CERCA</option>
+              <option>BIFOCAL</option>
+              <option>MULTIFOCAL</option>
+              <option>OCUPACIONAL</option>
+              <option>MONOFOCAL INTERMEDIA</option>
+              <option>SOBRE LC</option>
             </select>
           </div>
         </div>
@@ -206,7 +206,6 @@
           <div>
             <label for="forma_pago">Forma de pago</label>
             <input id="forma_pago" name="forma_pago" />
-            <!-- main.js reemplaza este input por un <select> con DEBITO / OTRO+detalle -->
           </div>
         </div>
       </section>
@@ -216,7 +215,7 @@
         <section class="card grid">
           <div class="row cols-3">
             <div>
-              <label for="numero_armazon">Nº armazón</label>
+              <label for="numero_armazon">N° armazón</label>
               <input id="numero_armazon" name="numero_armazon" inputmode="text"
                      autocapitalize="characters" autocorrect="off" spellcheck="false"
                      maxlength="12" placeholder="Ej: 13336" />
@@ -234,35 +233,32 @@
             </div>
           </div>
 
-          <!-- ===== Desglose claro de totales ===== -->
+          <!-- Desglose -->
           <div class="totals-ticket" id="totales-panel">
             <div class="tt-title">Desglose</div>
-
             <div class="tt-row sum"><span>Armazón</span><span id="tt-armazon" class="tt-val">$ 0</span></div>
             <div class="tt-row sum"><span>Cristal</span><span id="tt-cristal" class="tt-val">$ 0</span></div>
 
             <div class="tt-row sum" id="tt-row-otro">
               <span id="tt-otro-label">Otro concepto</span>
-              <span id="tt-otro" class="tt-val">$ 0</span></div>
+              <span id="tt-otro" class="tt-val">$ 0</span>
+            </div>
 
             <div class="tt-row subtotal">
               <span>Subtotal</span>
               <span id="tt-subtotal" class="tt-val">$ 0</span>
             </div>
 
-            <!-- Seña editable (visible) -->
             <div class="row it">
               <span class="lbl">Seña</span>
               <div class="money"><input id="seniaInput" type="text" inputmode="numeric" value="0" autocomplete="off" /></div>
             </div>
 
-            <!-- Concepto negativo (solo si hay texto+monto) -->
             <div class="tt-row rest" id="tt-row-obra">
               <span id="tt-obra-label">− </span>
               <span id="tt-obra" class="tt-val">− $ 0</span>
             </div>
 
-            <!-- Seña (mostrada como resta) -->
             <div class="tt-row rest">
               <span>− Seña</span>
               <span id="tt-sena" class="tt-val">− $ 0</span>
@@ -280,7 +276,7 @@
             </div>
           </div>
 
-          <!-- ===== Inputs originales (ocultos) ===== -->
+          <!-- Inputs ocultos -->
           <div class="visually-hidden">
             <div class="row cols-3">
               <div>
@@ -297,10 +293,9 @@
               </div>
             </div>
           </div>
-          <!-- ===== Fin inputs originales ===== -->
         </section>
 
-        <!-- Fotos (usa tu flujo de fotoPack) -->
+        <!-- Fotos -->
         <section class="card grid no-print">
           <div class="actions">
             <button id="btn-foto"    type="button" class="secondary">📷 Foto</button>
@@ -316,14 +311,13 @@
             <button id="btn-limpiar"  type="button" class="secondary">Limpiar</button>
             <button type="submit">Guardar</button>
             <button id="btn-editar" type="button" class="secondary">Editar</button>
-            <button id="btn-cancelar-edit" type="button" class="ghost">Cancelar edición</button>
           </div>
         </section>
       </aside>
     </form>
   </div>
 
-  <!-- Modal de cámara -->
+  <!-- Modal de cámara (si lo usás con fotoPack) -->
   <div id="cam-modal" class="cam-modal" hidden>
     <div class="cam-dialog">
       <div class="cam-head">
@@ -342,17 +336,18 @@
     </div>
   </div>
 
-  <!-- JS -->
+  <!-- JS principales -->
   <script type="module" src="js/main.js?v=2025-11-05"></script>
+  <script src="js/print.js"></script> <!-- para ticket de impresión -->
 
-  <!-- Cálculo de totales en vivo (aislado) -->
+  <!-- Handlers finales -->
   <script type="module">
     import { parseMoney, sanitizePrice } from './js/utils.js';
 
     const $  = (id) => document.getElementById(id);
     const fmt = (n) => '$ ' + Math.max(0, Math.round(n||0)).toLocaleString('es-AR');
 
-    // Entradas
+    // ====== Totales en vivo ======
     const fields = {
       precio_armazon: $('precio_armazon'),
       precio_cristal: $('precio_cristal'),
@@ -365,8 +360,6 @@
       saldo: $('saldo'),
       seniaInput: $('seniaInput'),
     };
-
-    // Salidas
     const view = {
       armazon:   $('tt-armazon'),
       cristal:   $('tt-cristal'),
@@ -381,17 +374,13 @@
       rowOtro:   $('tt-row-otro'),
       rowObra:   $('tt-row-obra'),
     };
-
     function val(el){ return parseMoney(el?.value || 0); }
-
-    // Mantener sincronizada la seña visible con la oculta
     function syncSeniaHidden(){
       if (!fields.seniaInput || !fields.sena) return;
       fields.sena.value = fields.seniaInput.value || '0';
       fields.sena.dispatchEvent(new Event('input', {bubbles:true}));
       fields.sena.dispatchEvent(new Event('change', {bubbles:true}));
     }
-
     function updateTotals(){
       const ar = val(fields.precio_armazon);
       const cr = val(fields.precio_cristal);
@@ -411,21 +400,11 @@
 
       const txtOtro = (fields.otro_concepto?.value || '').trim();
       view.otroLabel.textContent = txtOtro || 'Otro concepto';
-      if (ot > 0 && txtOtro){
-        view.otro.textContent = fmt(ot);
-        view.rowOtro.hidden = false;
-      } else {
-        view.rowOtro.hidden = true;
-      }
+      view.rowOtro.hidden = !(ot > 0 && txtOtro);
 
       const txtNeg = (fields.concepto_negativo?.value || '').trim();
       view.obraLabel.textContent = '− ' + (txtNeg || '');
-      if (os > 0 && txtNeg){
-        view.obra.textContent = '− ' + fmt(os);
-        view.rowObra.hidden = false;
-      } else {
-        view.rowObra.hidden = true;
-      }
+      view.rowObra.hidden = !(os > 0 && txtNeg);
 
       const pct = total > 0 ? Math.min(100, Math.max(0, Math.round((se / total) * 100))) : 0;
       view.meter.style.width = pct + '%';
@@ -433,7 +412,6 @@
       if (fields.total) fields.total.value = total;
       if (fields.saldo) fields.saldo.value = saldo;
     }
-
     const moneyInputs = [
       fields.precio_armazon,
       fields.precio_cristal,
@@ -442,27 +420,69 @@
       fields.sena,
       fields.seniaInput,
     ].filter(Boolean);
-
     moneyInputs.forEach(el => {
       el.addEventListener('input', () => { sanitizePrice(el); if (el === fields.seniaInput) syncSeniaHidden(); updateTotals(); });
       el.addEventListener('blur',  () => { if (el === fields.seniaInput) syncSeniaHidden(); updateTotals(); });
       el.addEventListener('change',() => { if (el === fields.seniaInput) syncSeniaHidden(); updateTotals(); });
     });
-
     [fields.otro_concepto, fields.concepto_negativo].forEach(el => {
       if (el) ['input','change','blur'].forEach(ev => el.addEventListener(ev, updateTotals));
     });
+    syncSeniaHidden(); updateTotals();
 
-    syncSeniaHidden();
-    updateTotals();
-
-    window.__updateTotals = updateTotals;
-  </script>
-
-  <!-- Solo redirigir a editar.html -->
-  <script>
-    document.getElementById('btn-editar').addEventListener('click', () => {
+    // ====== Botón Editar ⇒ sólo redirigir ======
+    document.getElementById('btn-editar')?.addEventListener('click', () => {
       window.location.href = 'editar.html';
+    });
+
+    // ====== Botón Imprimir ⇒ ticket ======
+    function collectDataForPrint() {
+      const entregaSel = $('entrega-select');
+      return {
+        fecha: $('fecha')?.value || '',
+        retira: $('fecha_retira')?.value || '',
+        entrega: entregaSel?.selectedOptions?.[0]?.textContent || '',
+        nro: $('numero_trabajo')?.value || $('numero_trabajo_hidden')?.value || '',
+        cliente: $('nombre')?.value || '',
+        dni: $('dni')?.value || '',
+        telefono: $('telefono')?.value || '',
+        localidad: $('localidad')?.value || '',
+        grad: {
+          od: { esf: $('od_esf')?.value || '', cil: $('od_cil')?.value || '', eje: $('od_eje')?.value || '' },
+          oi: { esf: $('oi_esf')?.value || '', cil: $('oi_cil')?.value || '', eje: $('oi_eje')?.value || '' },
+          add: $('add')?.value || '',
+          dnp: $('dnp')?.value || '',
+        },
+        dist: $('distancia_focal')?.value || '',
+        items: {
+          cristal: { desc: $('cristal')?.value || '', precio: $('precio_cristal')?.value || '0' },
+          armazon: { nro: $('numero_armazon')?.value || '', desc: $('armazon_detalle')?.value || '', precio: $('precio_armazon')?.value || '0' },
+          otro:    { desc: $('otro_concepto')?.value || '', precio: $('precio_otro')?.value || '0' },
+        },
+        totales: {
+          total: $('total')?.value || '0',
+          sena: $('sena')?.value || '0',
+          saldo: $('saldo')?.value || '0',
+        },
+        vendedor: $('vendedor')?.value || '',
+        formaPago: $('forma_pago')?.value || '',
+        qr: window.location.href
+      };
+    }
+    document.getElementById('btn-imprimir')?.addEventListener('click', async () => {
+      try {
+        const data = collectDataForPrint();
+        if (window.printTicket) {
+          await window.printTicket(data);
+        } else if (window.__buildPrintArea) {
+          window.__buildPrintArea(data);
+        } else {
+          window.print(); // fallback
+        }
+      } catch (e) {
+        console.error(e);
+        window.print();
+      }
     });
   </script>
 
