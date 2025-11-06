@@ -154,33 +154,110 @@ function fillFormFields(map){
 
 // Busca por N° trabajo y carga la fila para editar
 async function cargarParaEditar(){
-  const nro = ($('numero_trabajo')?.value||'').trim();
+  const nro = (document.getElementById('numero_trabajo')?.value || '').trim();
   if(!nro){ return Swal.fire('Falta número','Ingresá el N° de trabajo para editar','warning'); }
 
   try{
     Swal.fire({title:'Buscando…', allowOutsideClick:false, allowEscapeKey:false, showConfirmButton:false, didOpen:()=>Swal.showLoading()});
 
-    // Endpoint para traer fila exacta por número
-    // Implementar en Apps Script: action=getJobByNumber&nro=XYZ  → { ok:true, rowIndex: N, data: { campo: valor, ... } }
-    const url = withParams(EDIT_URL, { action:'getJobByNumber', nro, json:1 });
+    // Llama al GAS nuevo (func editar receta)
+    const url  = withParams(EDIT_URL, { action:'getJobByNumber', nro, json:1, _:+Date.now() });
     const resp = await apiGet(url);
 
-    if(!resp?.ok || !resp?.data){ Swal.close(); return Swal.fire('No encontrado', `No se encontró el N° ${nro}`, 'warning'); }
+    if(!resp?.ok){
+      Swal.close();
+      return Swal.fire('Error', resp?.error || 'No se pudo consultar', 'error');
+    }
+    if(!resp.hits || resp.hits.length === 0){
+      Swal.close();
+      return Swal.fire('No encontrado', `No se encontró el N° ${nro}`, 'warning');
+    }
 
-    // Cargar datos en el form
-    fillFormFields(resp.data);
+    // Si escribiste "50511183839" y hay variantes, trae exacto si existe; sino muestra un selector
+    let hit = null;
+    if (resp.exact) {
+      hit = resp.hits[0];
+    } else if (resp.hits.length > 1) {
+      // Elegir variante 50511183839-1, -2, etc.
+      const { value: elegido } = await Swal.fire({
+        title: 'Elegí el trabajo',
+        input: 'select',
+        inputOptions: Object.fromEntries(resp.hits.map(h => [h.nro, h.nro])),
+        inputPlaceholder: 'Seleccioná…',
+        showCancelButton: true,
+        confirmButtonText: 'Cargar',
+      });
+      if (!elegido) { Swal.close(); return; }
+      hit = resp.hits.find(h => h.nro === elegido);
+    } else {
+      hit = resp.hits[0];
+    }
 
-    // Setear control de edición
-    EDIT.row = String(resp.rowIndex ?? '');
-    EDIT.on();
+    if (!hit?.data){
+      Swal.close();
+      return Swal.fire('Error', 'Respuesta sin datos', 'error');
+    }
+
+    // ====== Mapeo de columnas -> IDs del formulario ======
+    // Ajustá claves si alguno de tus IDs difiere.
+    const FIELD_MAP = {
+      'NUMERO TRABAJO': 'numero_trabajo',
+      'DOCUMENTO': 'dni',
+      'APELLIDO Y NOMBRE': 'apellido',       // si tu input se llama distinto, cambiá acá
+      'TELEFONO': 'telefono',
+      'LOCALIDAD': 'localidad',
+
+      'N ANTEOJO': 'n_armazon',
+      'DETALLE ARMAZON': 'detalle_armazon',
+      'PRECIO ARMAZON': 'precio_armazon',
+
+      'CRISTAL': 'tipo_cristal',
+      'PRECIO CRISTAL': 'precio_cristal',
+
+      'OTRO CONCEPTO': 'otro_concepto',
+      'PRECIO OTRO': 'precio_otro',
+
+      'ENTREGA': 'modalidad_entrega',        // o 'entrega' si ese es tu id
+      'FORMA DE PAGO': 'forma_pago',
+      'VENDEDOR': 'vendedor',
+
+      'OD ESF': 'od_esf',
+      'OD CIL': 'od_cil',
+      'OD EJE': 'od_eje',
+      'OI ESF': 'oi_esf',
+      'OI CIL': 'oi_cil',
+      'OI EJE': 'oi_eje',
+      'DNP': 'dnp',
+      'DISTANCIA FOCAL': 'distancia_focal',
+
+      // fechas (si necesitás pre-cargar)
+      'FECHA': 'fecha_encarga',
+      'FECHA RETIRA': 'fecha_retira',
+
+      // totales (si querés mostrarlos)
+      'TOTAL': 'total',
+      'SEÑA': 'sena',
+      'SALDO': 'saldo',
+    };
+
+    // Transformar la fila del Sheet a { idInput: valor }
+    const dataSheet = hit.data;
+    const map = {};
+    for (const [col, val] of Object.entries(dataSheet)) {
+      const id = FIELD_MAP[col];
+      if (id) map[id] = val;
+    }
+
+    // Cargar en el formulario
+    fillFormFields(map);
 
     Swal.close();
-    if($('edit_badge')) $('edit_badge').scrollIntoView({behavior:'smooth',block:'center'});
+    Swal.fire('Listo', `Cargado el N° ${hit.nro}`, 'success');
 
-  }catch(err){
+  } catch (err){
     console.error(err);
     Swal.close();
-    Swal.fire('Error','No se pudo consultar el trabajo','error');
+    Swal.fire('Error', err.message || String(err), 'error');
   }
 }
 
