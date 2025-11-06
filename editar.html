@@ -1,646 +1,428 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Editar trabajo • Óptica Cristal</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Óptica Cristal • Editar trabajo</title>
+
+  <meta name="theme-color" content="#111827" />
   <link rel="icon" type="image/png" href="logo.png" />
-  <!-- Tus estilos globales (los que me pasaste) -->
-  <link rel="stylesheet" href="css/estilos.css?v=2025-11-06" />
-  <style>
-    /* Ajustes mínimos específicos del editor */
-    .hdr-actions { display:flex; gap:8px; flex-wrap:wrap; }
-    .pill.lock{ background:#fee2e2; color:#991b1b; }
-    .pill.unlock{ background:#dcfce7; color:#14532d; }
-    .sm { font-size:12px; color:var(--muted); }
-    .money input { text-align:right; }
-    .right { justify-self: end; }
-  </style>
+  <link rel="apple-touch-icon" href="icon-192.png" />
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="css/estilos.css?v=4" />
+  <link rel="stylesheet" href="css/print.css?v=1" />
+
+  <!-- Notificaciones -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
-  <main class="wrap">
-
-    <!-- ====== ENCABEZADO ====== -->
-    <section class="card">
+  <div class="wrap">
+    <header class="card">
       <div class="title-row">
         <div class="brand">
           <img src="logo.png" alt="Óptica Cristal" />
           <div>
-            <h1> v9 Editar trabajo</h1>
-            <div class="small muted">Cargá el N° de trabajo y desbloqueá con tu contraseña para habilitar edición.</div>
+            <h1>Editar trabajo</h1>
+            <p class="muted small">Cargar el N° y desbloquear con tu contraseña para habilitar edición.</p>
           </div>
         </div>
-        <div class="hdr-actions">
-          <span id="lockPill" class="pill lock">🔒 Bloqueado</span>
-        </div>
-      </div>
 
-      <div class="row cols-4" style="margin-top:10px">
-        <div>
-          <label>N° de trabajo</label>
-          <input id="nro_buscar" class="mono" placeholder="Ej: 50511181563" />
-        </div>
-        <div class="right">
-          <label>&nbsp;</label>
-          <div class="actions">
-            <button id="btnCargar">Cargar</button>
+        <div class="row" style="grid-template-columns:minmax(220px, 320px) auto;">
+          <div>
+            <label for="numBuscar">N° de trabajo</label>
+            <input id="numBuscar" inputmode="numeric" />
+          </div>
+          <div class="actions" style="align-self:end; display:flex; gap:.5rem;">
+            <button id="btnCargar" class="secondary">Cargar</button>
             <button id="btnLimpiar" class="ghost">Limpiar</button>
           </div>
         </div>
-        <div class="colspan"></div>
-        <div class="right sm">
-          Endpoint: <span class="mono" id="readEp"></span>
+
+        <small class="muted" id="endpointLabel"></small>
+
+        <div id="lockBadge" class="pill" style="margin-top:.5rem; background:#fee2e2; color:#991b1b;">
+          🔒 Bloqueado
         </div>
       </div>
-    </section>
+    </header>
 
-    <!-- ====== LAYOUT PRINCIPAL (como cargamos): form a la izquierda / ticket a la derecha ====== -->
-    <section class="grid two">
-      <!-- ========= COLUMNA IZQUIERDA ========= -->
-      <div class="card">
-
-        <!-- Datos generales (solo lectura) -->
-        <div class="row cols-4">
+    <!-- FICHA -->
+    <form id="formEditar" class="grid two" autocomplete="off">
+      <!-- Columna izquierda -->
+      <section class="card grid">
+        <div class="row cols-3">
           <div>
             <label>N° trabajo</label>
-            <input id="numero_trabajo" class="mono" readonly />
+            <input id="nro" disabled />
           </div>
           <div>
             <label>DNI</label>
-            <input id="dni" class="mono" readonly />
+            <input id="dni" disabled />
           </div>
-          <div class="colspan" style="grid-column: span 2;">
+          <div>
             <label>Apellido y nombre</label>
-            <input id="apellido" readonly />
+            <input id="nombre" disabled />
           </div>
         </div>
 
-        <div class="row cols-4">
+        <div class="row cols-2">
           <div>
             <label>Teléfono</label>
-            <input id="telefono" readonly />
+            <input id="telefono" disabled />
           </div>
-          <div class="colspan" style="grid-column: span 3;">
+          <div>
             <label>Localidad</label>
-            <input id="localidad" readonly />
+            <input id="localidad" disabled />
           </div>
         </div>
 
-        <div class="hr"></div>
+        <!-- Campos editables (sin clave): GRADUACIÓN -->
+        <fieldset style="border:1px solid var(--muted-2); padding:.75rem; border-radius:.75rem;">
+          <legend>Graduación (editable sin contraseña)</legend>
 
-        <!-- Campos editables que me pediste -->
-        <div class="row cols-4">
-          <div class="colspan" style="grid-column: span 3;">
-            <label>Tipo de cristal (G)</label>
-            <input id="tipo_cristal" disabled placeholder="Monofocal / Bifocal / etc." />
-          </div>
-          <div>
-            <label>Precio cristal (H)</label>
-            <div class="money"><input id="precio_cristal" disabled placeholder="0" /></div>
-          </div>
-        </div>
-
-        <div class="row cols-4">
-          <div class="colspan" style="grid-column: span 3;">
-            <label>Concepto negativo / Obra social (X)</label>
-            <input id="concepto_negativo" disabled placeholder="Ej: O.S. o descuento" />
-          </div>
-          <div>
-            <label>Precio obra social (Y)</label>
-            <div class="money"><input id="precio_descuento" disabled placeholder="0" /></div>
-          </div>
-        </div>
-
-        <div class="row cols-4">
-          <div class="colspan" style="grid-column: span 3;">
-            <label>Otro concepto (L)</label>
-            <input id="otro_concepto" disabled placeholder="Ej: tratamiento" />
-          </div>
-          <div>
-            <label>Precio otro (M)</label>
-            <div class="money"><input id="precio_otro" disabled placeholder="0" /></div>
-          </div>
-        </div>
-
-        <div class="row cols-4">
-          <div>
-            <label>OD ESF (O)</label>
-            <input id="od_esf" disabled placeholder="0.00" />
-          </div>
-          <div>
-            <label>OD CIL (P)</label>
-            <input id="od_cil" disabled placeholder="0.00" />
-          </div>
-          <div>
-            <label>OD EJE (Q)</label>
-            <input id="od_eje" disabled placeholder="EJE" />
-          </div>
-          <div>
-            <label>ADD (U)</label>
-            <input id="add" disabled placeholder="0.00" />
-          </div>
-        </div>
-
-        <div class="row cols-4">
-          <div>
-            <label>OI ESF (R)</label>
-            <input id="oi_esf" disabled placeholder="0.00" />
-          </div>
-          <div>
-            <label>OI CIL (S)</label>
-            <input id="oi_cil" disabled placeholder="0.00" />
-          </div>
-          <div>
-            <label>OI EJE (T)</label>
-            <input id="oi_eje" disabled placeholder="EJE" />
-          </div>
-          <div>
-            <label>Vendedor (AF)</label>
-            <input id="vendedor" disabled placeholder="JUAN / LUCAS / ..." />
-          </div>
-        </div>
-
-        <div class="row cols-4">
-          <div>
-            <label>Forma de pago (AC)</label>
-            <select id="forma_pago" disabled>
-              <option value="">Elegí una</option>
-              <option>EFECTIVO</option>
-              <option>DÉBITO</option>
-              <option>CRÉDITO</option>
-              <option>VISA 3 PAGOS</option>
-              <option>TRANSFERENCIA</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="hr"></div>
-
-        <!-- Autenticación simple (contraseña en hoja externa) -->
-        <div class="row cols-4">
-          <div>
-            <label>Contraseña</label>
-            <input id="pass" type="password" placeholder="••••••••" />
-          </div>
-          <div class="right">
-            <label>&nbsp;</label>
-            <div class="actions">
-              <button id="btnUnlock" class="secondary">Desbloquear edición</button>
-              <button id="btnGuardar" class="ghost" disabled>Guardar cambios</button>
+          <div class="row cols-4">
+            <div>
+              <label>OD ESF (O)</label>
+              <input id="od_esf" />
+            </div>
+            <div>
+              <label>OD CIL (P)</label>
+              <input id="od_cil" />
+            </div>
+            <div>
+              <label>OD EJE (Q)</label>
+              <input id="od_eje" />
+            </div>
+            <div>
+              <label>DNP (V)</label>
+              <input id="dnp" />
             </div>
           </div>
-        </div>
 
-      </div>
+          <div class="row cols-4">
+            <div>
+              <label>OI ESF (R)</label>
+              <input id="oi_esf" />
+            </div>
+            <div>
+              <label>OI CIL (S)</label>
+              <input id="oi_cil" />
+            </div>
+            <div>
+              <label>OI EJE (T)</label>
+              <input id="oi_eje" />
+            </div>
+            <div>
+              <label>ADD (U)</label>
+              <input id="add" />
+            </div>
+          </div>
+        </fieldset>
 
-      <!-- ========= COLUMNA DERECHA (Ticket de totales parecido) ========= -->
-      <aside class="card">
-        <div class="totals-ticket">
-          <div class="tt-title">Desglose</div>
+        <!-- Campos protegidos (con contraseña) -->
+        <fieldset style="border:1px solid var(--muted-2); padding:.75rem; border-radius:.75rem;">
+          <legend>Campos editables (con contraseña)</legend>
 
-          <div class="tt-row"><span>Armazón</span><span class="tt-val mono" id="tt_armazon">$ 0</span></div>
-          <div class="tt-row"><span>Cristal</span><span class="tt-val mono" id="tt_cristal">$ 0</span></div>
-          <div class="tt-row"><span>Otro concepto</span><span class="tt-val mono" id="tt_otro">$ 0</span></div>
-
-          <div class="tt-row subtotal"><span>Subtotal</span><span class="tt-val mono" id="tt_subtotal">$ 0</span></div>
-
-          <div class="tt-row rest"><span>– Descuento / O.S.</span><span class="tt-val mono" id="tt_descuento">– $ 0</span></div>
-          <div class="tt-row rest"><span>– Seña</span><span class="tt-val mono" id="tt_senia">– $ 0</span></div>
-
-          <div class="tt-row total" style="margin-top:6px;">
-            <span>Saldo a pagar</span>
-            <span class="tt-big mono" id="tt_total">$ 0</span>
+          <div class="row cols-2">
+            <div>
+              <label>Tipo de cristal (G)</label>
+              <input id="cristal" disabled />
+            </div>
+            <div>
+              <label>Precio cristal (H)</label>
+              <input id="precio_cristal" inputmode="numeric" disabled />
+            </div>
           </div>
 
-          <div class="tt-meter"><div id="tt_meter"></div></div>
-        </div>
+          <div class="row cols-2">
+            <div>
+              <label>Concepto negativo / Obra social (X)</label>
+              <input id="obra_social" disabled />
+            </div>
+            <div>
+              <label>Precio obra social (Y)</label>
+              <input id="precio_obra_social" inputmode="numeric" disabled />
+            </div>
+          </div>
 
-        <div class="hr"></div>
+          <div class="row cols-2">
+            <div>
+              <label>Otro concepto (L)</label>
+              <input id="otro_concepto" disabled />
+            </div>
+            <div>
+              <label>Precio otro (M)</label>
+              <input id="precio_otro" inputmode="numeric" disabled />
+            </div>
+          </div>
 
-        <!-- Galería (para el futuro, hoy sin fotos) -->
-        <div>
-          <div class="small muted" style="margin-bottom:6px;">Galería</div>
-          <div class="galeria" id="galeria"></div>
-        </div>
+          <div class="row cols-2">
+            <div>
+              <label>Forma de pago (AC)</label>
+              <input id="forma_pago" disabled />
+            </div>
+            <div>
+              <label>Vendedor (AF)</label>
+              <input id="vendedor" disabled />
+            </div>
+          </div>
+        </fieldset>
+      </section>
+
+      <!-- Columna derecha -->
+      <aside class="grid">
+        <section class="card grid">
+          <div class="row cols-1">
+            <div>
+              <label>N° armazón (I)</label>
+              <input id="n_armazon" disabled />
+            </div>
+          </div>
+          <div class="row cols-1">
+            <div>
+              <label>Detalle armazón (K)</label>
+              <input id="detalle_armazon" disabled />
+            </div>
+          </div>
+          <div class="row cols-1">
+            <div>
+              <label>Precio armazón (J)</label>
+              <input id="precio_armazon" inputmode="numeric" disabled />
+            </div>
+          </div>
+
+          <div class="row cols-1">
+            <div class="actions" style="display:flex; gap:.5rem; flex-wrap:wrap">
+              <button id="btnImprimir" type="button" class="ghost">Reimprimir</button>
+              <button id="btnGuardar"  type="button">Guardar cambios</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="row cols-2">
+            <div>
+              <label>Contraseña</label>
+              <input id="pass" type="password" placeholder="••••••••" />
+            </div>
+            <div style="display:flex; align-items:flex-end;">
+              <button id="btnUnlock" type="button" class="secondary">Desbloquear edición</button>
+            </div>
+          </div>
+          <small class="muted">Al desbloquear, se habilitan los campos protegidos. La graduación siempre es editable.</small>
+        </section>
       </aside>
-    </section>
-  </main>
+    </form>
+  </div>
 
+  <!-- JS: API y helpers -->
   <script type="module">
-    /********** CONFIG **********/
-    const EDIT_URL = "https://script.google.com/macros/s/AKfycbxIOfNJwvsHqb-nE36EbtZE4EYw1l-BbUGptxj335dK5sSusgT9X_MBzwgjwRdOkBp4/exec";
+    import { API_URL, EDIT_URL } from './js/api.js';
 
-    /********** HELPERS **********/
-    const params = new URLSearchParams(location.search);
-const numero = params.get("num");
-if (numero) {
-  document.getElementById("numero_trabajo").value = numero;
-  // si querés que dispare automáticamente el botón cargar:
-  document.getElementById("btn-cargar").click();
-}
-    
-    
-    
-    const $ = s => document.querySelector(s);
-    const byId = id => document.getElementById(id);
-    const fmtMoney = v => {
-      const n = Number(String(v).replace(/[^\d.-]/g,'') || 0);
-      return n.toLocaleString('es-AR', {style:'currency', currency:'ARS', maximumFractionDigits:0});
-    };
-    const qstr = (base, params={})=>{
-      const u = new URL(base);
-      Object.entries(params).forEach(([k,v])=>{
-        if(v!==undefined && v!==null && v!=='') u.searchParams.set(k,v);
-      });
-      return u.toString();
-    };
-    async function getJSON(url){
-      const r = await fetch(url, { cache:'no-store' });
-      if(!r.ok) throw new Error('HTTP '+r.status);
-      return r.json();
-    }
-    // Evita preflight (CORS): application/x-www-form-urlencoded
-    async function postForm(url, data){
-      const body = new URLSearchParams();
-      for (const [k,v] of Object.entries(data)) {
-        body.append(k, typeof v === 'string' ? v : JSON.stringify(v));
-      }
-      const r = await fetch(url, { method:'POST', body });
-      if(!r.ok) throw new Error('HTTP '+r.status);
-      return r.json();
-    }
-    function setDisabled(ids, disabled=true){
-      ids.forEach(id => { const el = byId(id); if(el) el.disabled = disabled; });
-      byId('btnGuardar').disabled = disabled;
-      const pill = byId('lockPill');
-      pill.textContent = disabled ? '🔒 Bloqueado' : '🔓 Desbloqueado';
-      pill.className = 'pill ' + (disabled ? 'lock' : 'unlock');
-    }
-    function fill(map){
-      Object.entries(map).forEach(([id,val])=>{
-        const el = byId(id);
-        if (el) { el.value = (val ?? ''); }
-      });
-    }
-    function numberLike(v){
-      const n = Number(String(v).replace(/[^\d.-]/g,''));
-      return isFinite(n) ? n : 0;
-    }
+    const $ = (id)=>document.getElementById(id);
+    const endpointLabel = $('endpointLabel');
+    endpointLabel.textContent = `Endpoint lectura: ${API_URL}`;
 
-    /********** CAMPOS **********/
-    const EDITABLE_IDS = [
-      'tipo_cristal','precio_cristal',
-      'concepto_negativo','precio_descuento',
-      'otro_concepto','precio_otro',
-      'od_esf','od_cil','od_eje','oi_esf','oi_cil','oi_eje','add',
-      'forma_pago','vendedor'
+    // ===== util =====
+    function setDisabled(ids, state) { ids.forEach(id => { const el = $(id); if (el) el.disabled = !!state; }); }
+    function showError(t, m){ Swal.fire(t, m, 'error'); }
+    function showOk(t, m){ Swal.fire(t, m, 'success'); }
+
+    // Campos protegidos (se habilitan al desbloquear)
+    const PROTEGIDOS = [
+      'cristal','precio_cristal','obra_social','precio_obra_social',
+      'otro_concepto','precio_otro','forma_pago','vendedor',
+      'n_armazon','detalle_armazon','precio_armazon'
     ];
+    // Al inicio: bloqueados
+    setDisabled(PROTEGIDOS, true);
 
-    const MAP = {
-      // solo lectura
-      'NUMERO TRABAJO':'numero_trabajo',
-      'DOCUMENTO':'dni',
-      'APELLIDO Y NOMBRE':'apellido',
-      'TELEFONO':'telefono',
-      'LOCALIDAD':'localidad',
-      // editables
-      'CRISTAL':'tipo_cristal',
-      'PRECIO CRISTAL':'precio_cristal',
-      'OBRA SOCIAL':'concepto_negativo',
-      'PRECIO OBRA SOCIAL':'precio_descuento',
-      'OTRO CONCEPTO':'otro_concepto',
-      'PRECIO OTRO':'precio_otro',
-      'OD ESF':'od_esf','OD CIL':'od_cil','OD EJE':'od_eje',
-      'OI ESF':'oi_esf','OI CIL':'oi_cil','OI EJE':'oi_eje',
-      'ADD':'add',
-      'FORMA DE PAGO':'forma_pago',
-      'VENDEDOR':'vendedor',
-      // para ticket (si existen en tu sheet)
-      'PRECIO ARMAZON':'_tt_armazon',
-      'SEÑA':'_tt_senia',
-      'TOTAL':'_tt_total'
-    };
-
-    const state = { hit:null, pass:null };
-
-    /********** INIT **********/
-    byId('readEp').textContent = EDIT_URL;
-
-    // Autocargar si viene ?nro=
-    (function(){
-      const nro = new URLSearchParams(location.search).get('nro');
-      if (nro) { byId('nro_buscar').value = nro; }
-    })();
-
-    // Limpiar
-    byId('btnLimpiar').onclick = ()=>{
-      document.querySelectorAll('input,select').forEach(el=>el.value='');
-      setDisabled(EDITABLE_IDS, true);
-      state.hit = null; state.pass = null;
-      updateTicket();
-    };
-
-    // Cargar trabajo
-    byId('btnCargar').onclick = async ()=>{
-      const nro = byId('nro_buscar').value.trim();
-      if (!nro) return alert('Ingresá el N° de trabajo');
-
+    // ===== Cargar por número =====
+    async function cargarPorNumero(nro){
+      if(!nro) return showError('Falta número','Ingresá un N° de trabajo');
       try{
-        const resp = await getJSON(qstr(EDIT_URL, { action:'getJobByNumber', nro, _:Date.now() }));
-        if (!resp.ok) throw new Error(resp.error || 'Sin respuesta');
-        if (!resp.hits?.length) return alert('No encontrado');
+        const url = `${API_URL}?action=getJobByNumber&nro=${encodeURIComponent(nro)}`;
+        const r = await fetch(url);
+        const j = await r.json();
+        if(!j.ok || !j.hits || !j.hits.length) {
+          showError('No encontrado', `No se encontró el N° ${nro}`);
+          return;
+        }
+        const data = j.hits[0].data;
 
-        const hit = resp.hits[0];
-        state.hit = hit;
+        // Mapear columnas exactas a IDs de inputs (según tu hoja)
+        $('nro').value               = data['NUMERO TRABAJO'] || '';
+        $('dni').value               = data['DOCUMENTO'] || '';
+        $('nombre').value            = data['APELLIDO Y NOMBRE'] || '';
+        $('telefono').value          = data['TELEFONO'] || '';
+        $('localidad').value         = data['LOCALIDAD'] || '';
 
-        // Mapeo a inputs
-        const m = {'numero_trabajo': hit.nro};
-        const row = hit.data || {};
-        Object.entries(MAP).forEach(([col,id])=>{
-          if (row[col] !== undefined && !id.startsWith('_')) m[id] = row[col];
-        });
-        fill(m);
+        $('od_esf').value            = data['OD ESF'] ?? '';
+        $('od_cil').value            = data['OD CIL'] ?? '';
+        $('od_eje').value            = data['OD EJE'] ?? '';
+        $('oi_esf').value            = data['OI ESF'] ?? '';
+        $('oi_cil').value            = data['OI CIL'] ?? '';
+        $('oi_eje').value            = data['OI EJE'] ?? '';
+        $('dnp').value               = data['DNP'] ?? '';
+        $('add').value               = data['ADD'] ?? '';
 
-        // Ticket inicial
-        updateTicketFromRow(row);
+        $('cristal').value           = data['CRISTAL'] || '';
+        $('precio_cristal').value    = data['PRECIO CRISTAL'] || '';
+        $('obra_social').value       = data['OBRA SOCIAL'] || '';
+        $('precio_obra_social').value= data['PRECIO OBRA SOCIAL'] || '';
+        $('otro_concepto').value     = data['OTRO CONCEPTO'] || '';
+        $('precio_otro').value       = data['PRECIO OTRO'] || '';
+        $('forma_pago').value        = data['FORMA DE PAGO'] || '';
+        $('vendedor').value          = data['VENDEDOR'] || '';
 
-        // Bloqueado por defecto
-        setDisabled(EDITABLE_IDS, true);
+        $('n_armazon').value         = data['N ANTEOJO'] || '';
+        $('detalle_armazon').value   = data['DETALLE ARMAZON'] || '';
+        $('precio_armazon').value    = data['PRECIO ARMAZON'] || '';
+
+        $('lockBadge').textContent = '🔒 Bloqueado';
+        $('lockBadge').style.background = '#fee2e2';
+        $('lockBadge').style.color = '#991b1b';
       }catch(err){
         console.error(err);
-        alert('Error al cargar');
+        showError('Error','No se pudo cargar el trabajo');
       }
-    };
+    }
 
-    // Desbloquear (clave en hoja externa)
-    byId('btnUnlock').onclick = async ()=>{
-      const clave = byId('pass').value.trim();
-      if(!clave) return alert('Ingresá la contraseña');
+    // Autocargar si viene ?num=
+    const params = new URLSearchParams(location.search);
+    const pre = params.get('num');
+    if (pre) { $('numBuscar').value = pre; }
 
+    // Botones cargar/limpiar
+    $('btnCargar').addEventListener('click', ()=> cargarPorNumero($('numBuscar').value.trim()));
+    $('btnLimpiar').addEventListener('click', ()=> location.href='editar.html');
+
+    // ===== Desbloquear edición =====
+    $('btnUnlock').addEventListener('click', async ()=>{
+      const pass = $('pass').value.trim();
+      if(!pass) return showError('Contraseña','Ingresá la contraseña');
       try{
-        const res = await postForm(EDIT_URL, { action:'authCheck', clave });
-        if(res?.ok !== true) return alert('Contraseña incorrecta');
-        state.pass = clave;
-        setDisabled(EDITABLE_IDS, false);
+        const url = `${EDIT_URL}?action=checkPassword&pass=${encodeURIComponent(pass)}`;
+        const r = await fetch(url);
+        const j = await r.json();
+        if(j.ok){
+          setDisabled(PROTEGIDOS, false);
+          $('lockBadge').textContent = '🔓 Desbloqueado';
+          $('lockBadge').style.background = '#dcfce7';
+          $('lockBadge').style.color = '#14532d';
+          showOk('Listo','Edición habilitada');
+        }else{
+          showError('Contraseña incorrecta','No pudimos desbloquear');
+        }
       }catch(e){
         console.error(e);
-        alert('No se pudo autenticar');
+        showError('Error','No se pudo validar la contraseña');
       }
-    };
+    });
 
-    // Guardar
-    byId('btnGuardar').onclick = async ()=>{
-      if(!state.hit) return alert('Primero cargá un trabajo');
-      if(!state.pass) return alert('Desbloqueá con la contraseña');
+    // ===== Guardar cambios =====
+    $('btnGuardar').addEventListener('click', async ()=>{
+      const nro = $('nro').value.trim();
+      if(!nro) return showError('Falta N°','Cargá primero un trabajo');
+      // Armamos payload con TODOS los campos editables:
+      const body = {
+        action: 'updateJob',
+        nro,
+        // Sin password, tu Apps Script debería aceptar siempre la parte de graduación;
+        // si está desbloqueado, también el resto:
+        datos: {
+          'OD ESF': $('od_esf').value,
+          'OD CIL': $('od_cil').value,
+          'OD EJE': $('od_eje').value,
+          'OI ESF': $('oi_esf').value,
+          'OI CIL': $('oi_cil').value,
+          'OI EJE': $('oi_eje').value,
+          'ADD'   : $('add').value,
+          'DNP'   : $('dnp').value,
 
-      const cambios = {
-        'CRISTAL': byId('tipo_cristal').value.trim(),
-        'PRECIO CRISTAL': byId('precio_cristal').value.trim(),
-        'OBRA SOCIAL': byId('concepto_negativo').value.trim(),
-        'PRECIO OBRA SOCIAL': byId('precio_descuento').value.trim(),
-        'OTRO CONCEPTO': byId('otro_concepto').value.trim(),
-        'PRECIO OTRO': byId('precio_otro').value.trim(),
-        'OD ESF': byId('od_esf').value.trim(),
-        'OD CIL': byId('od_cil').value.trim(),
-        'OD EJE': byId('od_eje').value.trim(),
-        'OI ESF': byId('oi_esf').value.trim(),
-        'OI CIL': byId('oi_cil').value.trim(),
-        'OI EJE': byId('oi_eje').value.trim(),
-        'ADD': byId('add').value.trim(),
-        'FORMA DE PAGO': byId('forma_pago').value.trim(),
-        'VENDEDOR': byId('vendedor').value.trim()
-      };
-
-      try{
-        const res = await postForm(EDIT_URL, {
-          action:'updateJob',
-          nro: byId('numero_trabajo').value.trim(),
-          clave: state.pass,
-          cambios
-        });
-        if(res?.ok === true){
-          alert('Cambios guardados ✔');
-          setDisabled(EDITABLE_IDS, true);
-          // refresco ticket con valores actuales
-          updateTicket();
-        } else {
-          alert('Error: ' + (res?.error || 'No se pudo actualizar'));
+          // protegidos (el GAS puede ignorarlos si no está desbloqueado)
+          'CRISTAL': $('cristal').value,
+          'PRECIO CRISTAL': $('precio_cristal').value,
+          'OBRA SOCIAL': $('obra_social').value,
+          'PRECIO OBRA SOCIAL': $('precio_obra_social').value,
+          'OTRO CONCEPTO': $('otro_concepto').value,
+          'PRECIO OTRO': $('precio_otro').value,
+          'FORMA DE PAGO': $('forma_pago').value,
+          'VENDEDOR': $('vendedor').value,
+          'N ANTEOJO': $('n_armazon').value,
+          'DETALLE ARMAZON': $('detalle_armazon').value,
+          'PRECIO ARMAZON': $('precio_armazon').value
         }
-      }catch(err){
-        console.error(err);
-        alert('No se pudo guardar');
+      };
+      try{
+        const r = await fetch(EDIT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const j = await r.json();
+        if(j.ok){
+          showOk('Guardado','Los cambios se actualizaron');
+        }else{
+          showError('No guardó', j.error || 'Error desconocido');
+        }
+      }catch(e){
+        console.error(e);
+        showError('Error','No se pudo guardar');
       }
+    });
+
+    // ===== Reimprimir =====
+    window.collectDataForPrint = function(){
+      // Reutilizamos los mismos IDs para armar el ticket
+      return {
+        fecha: '', // (opcional)
+        retira: '',
+        entrega: '',
+        nro: $('nro')?.value || '',
+        cliente: $('nombre')?.value || '',
+        dni: $('dni')?.value || '',
+        telefono: $('telefono')?.value || '',
+        localidad: $('localidad')?.value || '',
+        grad: {
+          od: { esf: $('od_esf')?.value || '', cil: $('od_cil')?.value || '', eje: $('od_eje')?.value || '' },
+          oi: { esf: $('oi_esf')?.value || '', cil: $('oi_cil')?.value || '', eje: $('oi_eje')?.value || '' },
+          add: $('add')?.value || '',
+          dnp: $('dnp')?.value || '',
+        },
+        dist: '', // opcional
+        items: {
+          cristal: { desc: $('cristal')?.value || '', precio: $('precio_cristal')?.value || '0' },
+          armazon: { nro: $('n_armazon')?.value || '', desc: $('detalle_armazon')?.value || '', precio: $('precio_armazon')?.value || '0' },
+          otro:    { desc: $('otro_concepto')?.value || '', precio: $('precio_otro')?.value || '0' },
+        },
+        totales: { total:'0', sena:'0', saldo:'0' }, // si querés, calculás de nuevo
+        vendedor: $('vendedor')?.value || '',
+        formaPago: $('forma_pago')?.value || '',
+        qr: window.location.href
+      };
     };
+  </script>
 
-    /********** TICKET (visual) **********/
-    function updateTicketFromRow(row){
-      const armazon  = numberLike(row['PRECIO ARMAZON']);
-      const cristal  = numberLike(row['PRECIO CRISTAL']);
-      const otro     = numberLike(row['PRECIO OTRO']);
-      const desc     = numberLike(row['PRECIO OBRA SOCIAL']);
-      const senia    = numberLike(row['SEÑA']);
-      const subtotal = armazon + cristal + otro;
-      const total    = subtotal - desc - senia;
-
-      byId('tt_armazon').textContent  = fmtMoney(armazon);
-      byId('tt_cristal').textContent  = fmtMoney(cristal);
-      byId('tt_otro').textContent     = fmtMoney(otro);
-      byId('tt_subtotal').textContent = fmtMoney(subtotal);
-      byId('tt_descuento').textContent= '– ' + fmtMoney(desc);
-      byId('tt_senia').textContent    = '– ' + fmtMoney(senia);
-      byId('tt_total').textContent    = fmtMoney(total);
-
-      const meter = byId('tt_meter');
-      const pct = subtotal>0 ? Math.max(0, Math.min(100, (senia/subtotal)*100)) : 0;
-      meter.style.width = pct.toFixed(0) + '%';
-    }
-
-    function updateTicket(){
-      // recalcula con lo que haya cargado en inputs del editor
-      const armazon  = numberLike(0); // no se edita acá
-      const cristal  = numberLike(byId('precio_cristal').value);
-      const otro     = numberLike(byId('precio_otro').value);
-      const desc     = numberLike(byId('precio_descuento').value);
-      const senia    = numberLike(0); // no se edita acá
-      const subtotal = armazon + cristal + otro;
-      const total    = subtotal - desc - senia;
-
-      byId('tt_armazon').textContent  = fmtMoney(armazon);
-      byId('tt_cristal').textContent  = fmtMoney(cristal);
-      byId('tt_otro').textContent     = fmtMoney(otro);
-      byId('tt_subtotal').textContent = fmtMoney(subtotal);
-      byId('tt_descuento').textContent= '– ' + fmtMoney(desc);
-      byId('tt_senia').textContent    = '– ' + fmtMoney(senia);
-      byId('tt_total').textContent    = fmtMoney(total);
-
-      const meter = byId('tt_meter');
-      const pct = subtotal>0 ? Math.max(0, Math.min(100, (senia/subtotal)*100)) : 0;
-      meter.style.width = pct.toFixed(0) + '%';
-    }
-
-    // actualizar ticket en vivo si toca importes
-    ['precio_cristal','precio_otro','precio_descuento'].forEach(id=>{
-      const el = byId(id);
-      el.addEventListener('input', updateTicket);
-      el.addEventListener('change', updateTicket);
+  <!-- Ticket -->
+  <script src="js/print.js"></script>
+  <script>
+    document.getElementById('btnImprimir')?.addEventListener('click', async () => {
+      try{
+        const data = window.collectDataForPrint();
+        if (window.printTicket) {
+          await window.printTicket(data);
+        } else if (window.__buildPrintArea) {
+          window.__buildPrintArea(data);
+        } else {
+          window.print();
+        }
+      }catch(e){
+        console.error(e);
+        window.print();
+      }
     });
   </script>
-<script>
-/**
- * Este helper arma un DOM oculto con los IDs que print.js espera,
- * toma los valores desde los campos presentes en editar.html
- * y llama a __buildPrintArea() para imprimir con el mismo diseño.
- */
-(() => {
-  const $ = (sel) => document.querySelector(sel);
-  const byId = (id) => document.getElementById(id);
-
-  // Busca un valor en varios selectores posibles (por si tus IDs difieren)
-  function pick(...sels) {
-    for (const s of sels) {
-      const el = typeof s === 'string' ? $(s) : s;
-      if (el) {
-        if (el.tagName === 'SELECT') {
-          const opt = el.options[el.selectedIndex];
-          return (opt?.textContent || opt?.value || '').trim();
-        }
-        return (el.value || '').trim();
-      }
-    }
-    return '';
-  }
-
-  // Crea (o limpia) el contenedor oculto estándar para print.js
-  function ensureShadowForm() {
-    let wrap = byId('__print_shadow__');
-    if (!wrap) {
-      wrap = document.createElement('div');
-      wrap.id = '__print_shadow__';
-      wrap.style.cssText = 'position:fixed;left:-9999px;top:-9999px;visibility:hidden;';
-      document.body.appendChild(wrap);
-    }
-    wrap.innerHTML = `
-      <input id="numero_trabajo">
-      <input id="fecha">
-      <select id="entrega-select"><option></option></select>
-      <input id="fecha_retira">
-      <input id="dni">
-      <input id="nombre">
-      <input id="telefono">
-      <input id="localidad">
-
-      <input id="cristal">
-      <input id="precio_cristal">
-      <input id="obra_social">
-      <input id="importe_obra_social">
-
-      <input id="numero_armazon">
-      <input id="armazon_detalle">
-      <input id="precio_armazon">
-
-      <input id="otro_concepto">
-      <input id="precio_otro">
-
-      <input id="vendedor">
-      <input id="forma_pago">
-
-      <select id="distancia_focal"><option></option></select>
-
-      <select id="od_esf"></select>
-      <select id="od_cil"></select>
-      <input  id="od_eje">
-      <select id="oi_esf"></select>
-      <select id="oi_cil"></select>
-      <input  id="oi_eje">
-
-      <input id="dnp">
-      <input id="add">
-      <input id="dr">
-
-      <!-- seña hidden (print.js la usa si está) -->
-      <input id="sena" value="0">
-      <!-- backup visible (por las dudas) -->
-      <input id="seniaInput" value="0">
-      <!-- total/saldo (print.js no los requiere para render, los calcula) -->
-      <input id="total" value="0">
-      <input id="saldo" value="0">
-    `;
-    return wrap;
-  }
-
-  // Copiá aquí las correspondencias desde tus campos de "editar"
-  function fillShadowFromEditar() {
-    const w = ensureShadowForm();
-
-    // N° trabajo, fechas y cabecera
-    byId('numero_trabajo').value = pick('#nroTrabajo', '#numTrabajo', '#numero_trabajo', '[name="numero_trabajo"]');
-    byId('fecha').value          = pick('#fecha', '[name="fecha"]');
-    // "entrega-select" es un SELECT: le seteo el texto en su única opción
-    byId('entrega-select').options[0].textContent = pick('#entrega', '#modalidad', '#entrega-select');
-    byId('fecha_retira').value   = pick('#fechaRetira', '#fecha_retira', '[name="fecha_retira"]');
-
-    // Identificación cliente
-    byId('dni').value       = pick('#dni', '[name="dni"]');
-    byId('nombre').value    = pick('#nombre', '[name="nombre"]');
-    byId('telefono').value  = pick('#telefono', '[name="telefono"]');
-    byId('localidad').value = pick('#localidad', '[name="localidad"]');
-
-    // Productos / precios
-    byId('cristal').value           = pick('#tipoCristal', '#cristal', '[name="cristal"]');
-    byId('precio_cristal').value    = pick('#precioCristal', '#precio_cristal', '[name="precio_cristal"]');
-    byId('obra_social').value       = pick('#conceptoNegativo', '#obra_social', '[name="obra_social"]');
-    byId('importe_obra_social').value = pick('#precioObraSocial', '#importe_obra_social', '[name="importe_obra_social"]');
-
-    byId('numero_armazon').value    = pick('#nArmazon', '#numero_armazon', '[name="numero_armazon"]');
-    byId('armazon_detalle').value   = pick('#detalleArmazon', '#armazon_detalle', '[name="armazon_detalle"]');
-    byId('precio_armazon').value    = pick('#precioArmazon', '#precio_armazon', '[name="precio_armazon"]');
-
-    byId('otro_concepto').value     = pick('#otroConcepto', '#otro_concepto', '[name="otro_concepto"]');
-    byId('precio_otro').value       = pick('#precioOtro', '#precio_otro', '[name="precio_otro"]');
-
-    // Vendedor / pago
-    byId('vendedor').value          = pick('#vendedor', '[name="vendedor"]');
-    byId('forma_pago').value        = pick('#formaPago', '#forma_pago', '[name="forma_pago"]');
-
-    // Datos ópticos
-    byId('distancia_focal').options[0].textContent = pick('#distanciaFocal', '#distancia_focal');
-    // OD
-    byId('od_esf').innerHTML = `<option>${pick('#od_esf', '[name="od_esf"]')||''}</option>`;
-    byId('od_cil').innerHTML = `<option>${pick('#od_cil', '[name="od_cil"]')||''}</option>`;
-    byId('od_eje').value     = pick('#od_eje', '[name="od_eje"]');
-    // OI
-    byId('oi_esf').innerHTML = `<option>${pick('#oi_esf', '[name="oi_esf"]')||''}</option>`;
-    byId('oi_cil').innerHTML = `<option>${pick('#oi_cil', '[name="oi_cil"]')||''}</option>`;
-    byId('oi_eje').value     = pick('#oi_eje', '[name="oi_eje"]');
-
-    byId('dnp').value = pick('#dnp', '[name="dnp"]');
-    byId('add').value = pick('#add', '[name="add"]');
-    byId('dr').value  = pick('#dr', '[name="dr"]');
-
-    // Seña (si en editar usás otro id, mapealo acá)
-    const senia = pick('#sena', '#senia', '#seniaInput', '[name="sena"]', '[name="seniaInput"]') || '0';
-    byId('sena').value = senia;
-    byId('seniaInput').value = senia;
-  }
-
-  byId('btn-reimprimir')?.addEventListener('click', () => {
-    try {
-      fillShadowFromEditar();
-      if (typeof window.__buildPrintArea === 'function') {
-        window.__buildPrintArea(); // usa print.js (ticket A4 + talón + barcode)
-      } else {
-        alert('No se encontró print.js. Agregá <script src="js/print.js"></script> en editar.html');
-      }
-    } catch (e) {
-      console.error(e);
-      alert('No se pudo preparar la reimpresión.');
-    }
-  });
-})();
-</script>
-
-  
-  <button id="btn-reimprimir" type="button" class="secondary">Reimprimir</button>
-
 </body>
 </html>
