@@ -467,6 +467,17 @@
 
     window.__updateTotals = updateTotals;
   </script>
+<script>
+document.getElementById("btn-editar").addEventListener("click", () => {
+  const num = document.getElementById("numero_trabajo").value.trim();
+  if (!num) {
+    Swal.fire("Falta el número de trabajo", "Ingresalo antes de editar", "warning");
+    return;
+  }
+  // Redirige
+  window.location.href = `editar.html?num=${encodeURIComponent(num)}`;
+});
+</script>
 
   <footer>Desarrollado por Juan Ignacio Solis.</footer>
 </body>
