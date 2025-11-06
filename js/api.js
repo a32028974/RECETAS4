@@ -1,17 +1,14 @@
 // js/api.js — v2025-11-06
-// Endpoints centralizados
-
 // 1) ENDPOINT GENERAL (DNI, ARMAZÓN, HISTORIAL, guardar, updateJob, etc.)
 export const API_URL  = "https://script.google.com/macros/s/AKfycbzagB_jZ7niXARSbnqCVfZp3e6X9oMxSlO-u-zJCfReguIe2cXf63uZFIpSSdBvMi86rA/exec";
 
 // 2) ENDPOINT DE PACK/TELEGRAM (sigue igual)
 export const PACK_URL = "https://script.google.com/macros/s/AKfycbyAc51qga-xnN3319jcVmAWwz7NTlNH-Lht3IwRIt8PT0MAy_ZKpcGJiohQZIFPfIONsA/exec";
 
-// 3) ENDPOINT NUEVO (EDICIÓN / BÚSQUEDA POR NÚMERO)
-//    Tu Apps Script: “func editar receta” (getJobByNumber)
+// 3) ENDPOINT NUEVO (búsqueda por N° de trabajo) — "func editar receta"
 export const EDIT_URL = "https://script.google.com/macros/s/AKfycbxeMizwM-t9z0Nbz6R01yvR8YPg_uthGESDaz2wEfIROnDDsKHTFGsSrb2VN-LKBYsh/exec";
 
-// Helpers comunes
+// Helpers
 export function withParams(base, params = {}) {
   const u = new URL(base);
   Object.entries(params).forEach(([k, v]) => {
