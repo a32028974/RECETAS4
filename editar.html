@@ -29,14 +29,14 @@
     .right{display:flex;justify-content:flex-end}
     .money{text-align:right}
     .auth{display:flex;gap:10px;flex-wrap:wrap}
-    .auth input{max-width:200px}
+    .auth input{max-width:220px}
   </style>
 </head>
 <body>
   <main class="wrap">
     <section class="card">
-      <h1>v4 Editar trabajo</h1>
-      <p class="muted">Ingresá el <strong>N° de trabajo</strong> para cargar la ficha. Para editar, desbloqueá con tu contraseña (y opcionalmente con código 2FA).</p>
+      <h1>Editar trabajo</h1>
+      <p class="muted">Ingresá el <strong>N° de trabajo</strong> para cargar la ficha. Desbloqueá con tu contraseña para habilitar la edición.</p>
       <div class="grid">
         <div class="col-4">
           <label>N° de trabajo</label>
@@ -109,15 +109,11 @@
 
       <div class="hr"></div>
 
-      <!-- Autenticación -->
+      <!-- Autenticación (solo contraseña) -->
       <div class="auth">
         <div>
           <label>Contraseña</label>
           <input id="pass" type="password" placeholder="••••••••" />
-        </div>
-        <div>
-          <label>2FA (Google Authenticator) — opcional</label>
-          <input id="totp" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="123456" />
         </div>
       </div>
 
@@ -125,16 +121,13 @@
         <button id="btnUnlock" class="b-warn">Desbloquear edición 🔓</button>
         <button id="btnGuardar" class="b-ok" disabled>Guardar cambios</button>
       </div>
-      <div class="muted">Si activás 2FA en el Apps Script, se requerirá contraseña + código de 6 dígitos.</div>
+      <div class="muted">Se habilitan únicamente los campos listados arriba. El guardado actualiza la fila en Google Sheets.</div>
     </section>
   </main>
 
   <script type="module">
-    // ======= ENDPOINTS =======
-    // GAS de edición (tuyo: "func editar receta")
-    const EDIT_URL = "https://script.google.com/macros/s/AKfycbwQ1qcb8mm8gWrlP4URsPbiQoVu3QzYKJ4TBs4W93vicPUfGf-aRhcflbYy4UVLNw/exec";
-    // (opcional) Endpoint general como fallback. Si no querés fallback, dejalo vacío.
-    const API_URL  = "";
+    // ======= ENDPOINT =======
+    const EDIT_URL = "https://script.google.com/macros/s/AKfycbwyk9VrwLPcslHGTE1kGSYzt6Ts-l10nkvEU1olvjHkvCNQVYSj_RRmAJ1ACR2mDpM/exec";
 
     // ======= HELPERS =======
     const $ = s => document.querySelector(s);
@@ -178,17 +171,19 @@
     };
 
     // ======= ESTADO =======
-    const state = { hit:null, auth:null }; // auth = {passHash, totp?}
+    const state = { hit:null, passHash:null };
 
-    // ======= CARGA INICIAL DESDE URL =======
+    // ======= UI =======
     byId('readEp').textContent = EDIT_URL;
-    byId('btnLimpiar').onclick = ()=>{ document.querySelectorAll('input,select').forEach(el=>el.value=''); setDisabled(EDITABLE_IDS,true); state.hit=null; state.auth=null; };
-    async function cargarAutoPorUrl(){
+    byId('btnLimpiar').onclick = ()=>{ document.querySelectorAll('input,select').forEach(el=>el.value=''); setDisabled(EDITABLE_IDS,true); state.hit=null; state.passHash=null; };
+
+    // Carga automática si viene ?nro= en la URL
+    (function autoLoadFromURL(){
       const nro = new URLSearchParams(location.search).get("nro");
       if(nro){ byId('nro_buscar').value = nro; byId('btnCargar').click(); }
-    }
+    })();
 
-    // ======= CARGAR TRABAJO =======
+    // Cargar trabajo
     byId('btnCargar').onclick = async ()=>{
       try{
         const nro = byId('nro_buscar').value.trim();
@@ -210,37 +205,33 @@
       }catch(err){ console.error(err); alert('Error al cargar'); }
     };
 
-    // ======= DESBLOQUEO (password + opcional TOTP) =======
+    // Desbloquear (solo password)
     byId('btnUnlock').onclick = async ()=>{
       const pass = byId('pass').value;
       if(!pass) return alert('Ingresá la contraseña');
 
       const passHash = await sha256hex(pass);
-      const totp = byId('totp').value.trim(); // puede venir vacío si 2FA apagado
 
-      // Validación en servidor (más seguro): authCheck
       try{
-        const res = await postJSON(EDIT_URL, { action:'authCheck', passHash, totp });
-        if(res?.ok !== true) return alert('Auth fallida: ' + (res?.error || ''));
-        state.auth = { passHash, totp };
+        const res = await postJSON(EDIT_URL, { action:'authCheck', passHash });
+        if(res?.ok !== true) return alert('Contraseña incorrecta');
+        state.passHash = passHash;
         setDisabled(EDITABLE_IDS, false);
       }catch(e){
         alert('No se pudo autenticar'); console.error(e);
       }
     };
 
-    // ======= GUARDAR =======
+    // Guardar cambios
     byId('btnGuardar').onclick = async ()=>{
       if(!state.hit) return alert('Primero cargá un trabajo');
-      if(!state.auth) return alert('Desbloqueá con la contraseña');
+      if(!state.passHash) return alert('Desbloqueá con la contraseña');
 
       const nro = byId('numero_trabajo').value.trim();
       const payload = {
         action:'updateJob',
         nro,
-        // auth
-        passHash: state.auth.passHash,
-        totp: state.auth.totp || '',
+        passHash: state.passHash,  // auth
         // columnas editables por encabezado EXACTO:
         'CRISTAL': byId('tipo_cristal').value.trim(),
         'PRECIO CRISTAL': byId('precio_cristal').value.trim(),
@@ -257,6 +248,7 @@
         'ADD': byId('add').value.trim(),
         'FORMA DE PAGO': byId('forma_pago').value.trim(),
         'VENDEDOR': byId('vendedor').value.trim(),
+        // opcional: rowIndex si lo querés usar en el GAS (hoy no es necesario)
         rowIndex: state.hit.rowIndex
       };
 
@@ -266,8 +258,6 @@
         else { alert('Error: ' + (res?.error || 'No se pudo actualizar')); }
       }catch(err){ console.error(err); alert('No se pudo guardar'); }
     };
-
-    cargarAutoPorUrl();
   </script>
 </body>
 </html>
