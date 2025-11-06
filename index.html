@@ -30,7 +30,7 @@
         <div class="brand">
           <img src="logo.png" alt="Óptica Cristal" />
           <div>
-            <h1>v14 Optica Cristal</h1>
+            <h1>Optica Cristal</h1>
             <p class="muted small">San Miguel • Argentina</p>
           </div>
         </div>
@@ -67,7 +67,6 @@
           <div>
             <label for="entrega-select" class="small">Modalidad de entrega</label>
             <select id="entrega-select" name="entrega">
-              <!-- El placeholder 'Elegí una opción' lo inyecta main.js -->
               <option value="7">Stock (7 días)</option>
               <option value="3">Urgente (3 días)</option>
               <option value="15">Laboratorio (15 días)</option>
@@ -361,12 +360,9 @@
       otro_concepto:  $('otro_concepto'),
       importe_obra_social: $('importe_obra_social'),
       concepto_negativo:   $('obra_social'),
-      // seña (oculta, la que se guarda)
       sena: $('sena'),
-      // total/saldo (ocultos)
       total: $('total'),
       saldo: $('saldo'),
-      // seña visible
       seniaInput: $('seniaInput'),
     };
 
@@ -388,7 +384,7 @@
 
     function val(el){ return parseMoney(el?.value || 0); }
 
-    // Mantener sincronizada la seña visible con la oculta que se guarda
+    // Mantener sincronizada la seña visible con la oculta
     function syncSeniaHidden(){
       if (!fields.seniaInput || !fields.sena) return;
       fields.sena.value = fields.seniaInput.value || '0';
@@ -401,20 +397,18 @@
       const cr = val(fields.precio_cristal);
       const ot = val(fields.precio_otro);
       const os = val(fields.importe_obra_social);
-      const se = val(fields.sena); // ¡lee de la oculta (ya sincronizada)!
+      const se = val(fields.sena);
 
       const subtotal = ar + cr + ot;
       const total    = subtotal;
       const saldo    = Math.max(0, total - os - se);
 
-      // Totales visibles
       view.armazon.textContent  = fmt(ar);
       view.cristal.textContent  = fmt(cr);
       view.subtotal.textContent = fmt(subtotal);
       view.sena.textContent     = '− ' + fmt(se);
       view.saldo.textContent    = fmt(saldo);
 
-      // Otro concepto (mostrar solo si hay texto y monto > 0)
       const txtOtro = (fields.otro_concepto?.value || '').trim();
       view.otroLabel.textContent = txtOtro || 'Otro concepto';
       if (ot > 0 && txtOtro){
@@ -424,7 +418,6 @@
         view.rowOtro.hidden = true;
       }
 
-      // Concepto negativo (mostrar solo si hay texto y monto > 0)
       const txtNeg = (fields.concepto_negativo?.value || '').trim();
       view.obraLabel.textContent = '− ' + (txtNeg || '');
       if (os > 0 && txtNeg){
@@ -434,11 +427,9 @@
         view.rowObra.hidden = true;
       }
 
-      // Barra progreso de pago
       const pct = total > 0 ? Math.min(100, Math.max(0, Math.round((se / total) * 100))) : 0;
       view.meter.style.width = pct + '%';
 
-      // Campos ocultos (para guardar)
       if (fields.total) fields.total.value = total;
       if (fields.saldo) fields.saldo.value = saldo;
     }
@@ -448,8 +439,8 @@
       fields.precio_cristal,
       fields.precio_otro,
       fields.importe_obra_social,
-      fields.sena,        // oculta
-      fields.seniaInput,  // visible
+      fields.sena,
+      fields.seniaInput,
     ].filter(Boolean);
 
     moneyInputs.forEach(el => {
@@ -467,17 +458,13 @@
 
     window.__updateTotals = updateTotals;
   </script>
-<script>
-document.getElementById("btn-editar").addEventListener("click", () => {
-  const num = document.getElementById("numero_trabajo").value.trim();
-  if (!num) {
-    Swal.fire("Falta el número de trabajo", "Ingresalo antes de editar", "warning");
-    return;
-  }
-  // Redirige
-  window.location.href = `editar.html?num=${encodeURIComponent(num)}`;
-});
-</script>
+
+  <!-- Solo redirigir a editar.html -->
+  <script>
+    document.getElementById('btn-editar').addEventListener('click', () => {
+      window.location.href = 'editar.html';
+    });
+  </script>
 
   <footer>Desarrollado por Juan Ignacio Solis.</footer>
 </body>
