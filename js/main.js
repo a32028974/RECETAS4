@@ -13,7 +13,7 @@ import { buscarNombrePorDNI } from './buscarNombre.js';
 import { buscarArmazonPorNumero } from './buscarArmazon.js';
 import { guardarTrabajo } from './guardar.js';
 import { initPhotoPack } from './fotoPack.js';
-import { API_URL, withParams, apiGet } from './api.js';
+import { API_URL, EDIT_URL, withParams, apiGet } from './api.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -162,7 +162,7 @@ async function cargarParaEditar(){
 
     // Endpoint para traer fila exacta por número
     // Implementar en Apps Script: action=getJobByNumber&nro=XYZ  → { ok:true, rowIndex: N, data: { campo: valor, ... } }
-    const url = withParams(API_URL, { action:'getJobByNumber', nro, json:1 });
+    const url = withParams(EDIT_URL, { action:'getJobByNumber', nro, json:1 });
     const resp = await apiGet(url);
 
     if(!resp?.ok || !resp?.data){ Swal.close(); return Swal.fire('No encontrado', `No se encontró el N° ${nro}`, 'warning'); }
