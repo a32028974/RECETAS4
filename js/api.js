@@ -6,7 +6,7 @@ export const API_URL  = "https://script.google.com/macros/s/AKfycbxVbBnVpJK6fgPy
 export const PACK_URL = "https://script.google.com/macros/s/AKfycbyAc51qga-xnN3319jcVmAWwz7NTlNH-Lht3IwRIt8PT0MAy_ZKpcGJiohQZIFPfIONsA/exec";
 
 // 3) ENDPOINT NUEVO (búsqueda por N° de trabajo) — "func editar receta"
-export const EDIT_URL = "https://script.google.com/macros/s/AKfycbxVbBnVpJK6fgPyedDYneBGwH-F59kNXJs-qRd2R3tfa6nrMmHl9OufMx8fp7DPDMYG/exec";
+export const EDIT_URL = "https://script.google.com/macros/s/AKfycbxF89vyHS9Fq23obhXPI77AkZCUtSFycShsxY2erTyB7BBObA5vXSgVs91F34keobuK/exec";
 
 // Helpers
 export function withParams(base, params = {}) {
