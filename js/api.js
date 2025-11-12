@@ -1,12 +1,12 @@
 // js/api.js — v2025-11-06
 // 1) ENDPOINT GENERAL (DNI, ARMAZÓN, HISTORIAL, guardar, updateJob, etc.)
-export const API_URL  = "https://script.google.com/macros/s/AKfycbzagB_jZ7niXARSbnqCVfZp3e6X9oMxSlO-u-zJCfReguIe2cXf63uZFIpSSdBvMi86rA/exec";
+export const API_URL  = "https://script.google.com/macros/s/AKfycbxVbBnVpJK6fgPyedDYneBGwH-F59kNXJs-qRd2R3tfa6nrMmHl9OufMx8fp7DPDMYG/exec";
 
 // 2) ENDPOINT DE PACK/TELEGRAM (sigue igual)
 export const PACK_URL = "https://script.google.com/macros/s/AKfycbyAc51qga-xnN3319jcVmAWwz7NTlNH-Lht3IwRIt8PT0MAy_ZKpcGJiohQZIFPfIONsA/exec";
 
 // 3) ENDPOINT NUEVO (búsqueda por N° de trabajo) — "func editar receta"
-export const EDIT_URL = "https://script.google.com/macros/s/AKfycbzoZeF_gW0vNZ7GvDmJnvwpRBSEz_DK2FBHzynjy2ccyELd31OCiAdw_Z_yDlI_RGsM/exec";
+export const EDIT_URL = "https://script.google.com/macros/s/AKfycbxVbBnVpJK6fgPyedDYneBGwH-F59kNXJs-qRd2R3tfa6nrMmHl9OufMx8fp7DPDMYG/exec";
 
 // Helpers
 export function withParams(base, params = {}) {
