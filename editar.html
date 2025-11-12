@@ -23,7 +23,7 @@
         <div class="brand">
           <img src="logo.png" alt="Óptica Cristal" />
           <div>
-            <h1>Editar trabajo v1 </h1>
+            <h1>Editar trabajo</h1>
             <p class="muted small">Cargar el N° y desbloquear con tu contraseña para habilitar edición.</p>
           </div>
         </div>
@@ -243,7 +243,7 @@
       if(!nro) return showError('Falta número','Ingresá un N° de trabajo');
       try{
         const url = `${API_URL}?action=getJobByNumber&nro=${encodeURIComponent(nro)}`;
-        const r = await fetch(url);
+        const r = await fetch(url, { cache:'no-store' });
         const j = await r.json();
         if(!j.ok || !j.hits || !j.hits.length) {
           showError('No encontrado', `No se encontró el N° ${nro}`);
@@ -295,16 +295,16 @@
     if (pre) { $('numBuscar').value = pre; }
 
     // Botones cargar/limpiar
-    $('btnCargar').addEventListener('click', ()=> cargarPorNumero($('numBuscar').value.trim()));
+    $('btnCargar').addEventListener('click', ()=> cargarPorNumero(($('numBuscar').value||'').trim()));
     $('btnLimpiar').addEventListener('click', ()=> location.href='editar.html');
 
-    // ===== Desbloquear edición =====
+    // ===== Desbloquear edición (GET, sin CORS) =====
     $('btnUnlock').addEventListener('click', async ()=>{
       const pass = $('pass').value.trim();
       if(!pass) return showError('Contraseña','Ingresá la contraseña');
       try{
         const url = `${EDIT_URL}?action=checkPassword&pass=${encodeURIComponent(pass)}`;
-        const r = await fetch(url);
+        const r = await fetch(url, { method:'GET', cache:'no-store' });
         const j = await r.json();
         if(j.ok){
           setDisabled(PROTEGIDOS, false);
@@ -321,46 +321,45 @@
       }
     });
 
-    // ===== Guardar cambios =====
+    // ===== Guardar cambios (POST urlencoded, sin preflight) =====
     $('btnGuardar').addEventListener('click', async ()=>{
-      const nro = $('nro').value.trim();
+      const nro  = ($('nro').value||'').trim();
+      const clave = ($('pass').value||'').trim(); // puede ir vacío si solo graduación
       if(!nro) return showError('Falta N°','Cargá primero un trabajo');
-      // Armamos payload con TODOS los campos editables:
-      const body = {
-        action: 'updateJob',
-        nro,
-        // Sin password, tu Apps Script debería aceptar siempre la parte de graduación;
-        // si está desbloqueado, también el resto:
-        datos: {
-          'OD ESF': $('od_esf').value,
-          'OD CIL': $('od_cil').value,
-          'OD EJE': $('od_eje').value,
-          'OI ESF': $('oi_esf').value,
-          'OI CIL': $('oi_cil').value,
-          'OI EJE': $('oi_eje').value,
-          'ADD'   : $('add').value,
-          'DNP'   : $('dnp').value,
 
-          // protegidos (el GAS puede ignorarlos si no está desbloqueado)
-          'CRISTAL': $('cristal').value,
-          'PRECIO CRISTAL': $('precio_cristal').value,
-          'OBRA SOCIAL': $('obra_social').value,
-          'PRECIO OBRA SOCIAL': $('precio_obra_social').value,
-          'OTRO CONCEPTO': $('otro_concepto').value,
-          'PRECIO OTRO': $('precio_otro').value,
-          'FORMA DE PAGO': $('forma_pago').value,
-          'VENDEDOR': $('vendedor').value,
-          'N ANTEOJO': $('n_armazon').value,
-          'DETALLE ARMAZON': $('detalle_armazon').value,
-          'PRECIO ARMAZON': $('precio_armazon').value
-        }
+      // Armá SOLO lo que querés actualizar (el backend aceptará o rechazará según esté desbloqueado)
+      const cambios = {
+        'OD ESF'            : $('od_esf').value,
+        'OD CIL'            : $('od_cil').value,
+        'OD EJE'            : $('od_eje').value,
+        'OI ESF'            : $('oi_esf').value,
+        'OI CIL'            : $('oi_cil').value,
+        'OI EJE'            : $('oi_eje').value,
+        'ADD'               : $('add').value,
+        'DNP'               : $('dnp').value,
+
+        'CRISTAL'           : $('cristal').value,
+        'PRECIO CRISTAL'    : $('precio_cristal').value,
+        'OBRA SOCIAL'       : $('obra_social').value,
+        'PRECIO OBRA SOCIAL': $('precio_obra_social').value,
+        'OTRO CONCEPTO'     : $('otro_concepto').value,
+        'PRECIO OTRO'       : $('precio_otro').value,
+        'FORMA DE PAGO'     : $('forma_pago').value,
+        'VENDEDOR'          : $('vendedor').value,
+        'N ANTEOJO'         : $('n_armazon').value,
+        'DETALLE ARMAZON'   : $('detalle_armazon').value,
+        'PRECIO ARMAZON'    : $('precio_armazon').value
       };
+
+      // POST simple sin headers personalizados => sin preflight
+      const body = new URLSearchParams();
+      body.set('action',  'updateJob');
+      body.set('nro',     nro);
+      body.set('clave',   clave); // permitido vacío si solo graduación
+      body.set('cambios', JSON.stringify(cambios));
+
       try{
-        const r = await fetch(EDIT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
+        const r = await fetch(EDIT_URL, { method:'POST', body, cache:'no-store' });
         const j = await r.json();
         if(j.ok){
           showOk('Guardado','Los cambios se actualizaron');
@@ -375,11 +374,9 @@
 
     // ===== Reimprimir =====
     window.collectDataForPrint = function(){
-      // Reutilizamos los mismos IDs para armar el ticket
       return {
-        fecha: '', // (opcional)
+        fecha: '',
         retira: '',
-        entrega: '',
         nro: $('nro')?.value || '',
         cliente: $('nombre')?.value || '',
         dni: $('dni')?.value || '',
@@ -391,13 +388,13 @@
           add: $('add')?.value || '',
           dnp: $('dnp')?.value || '',
         },
-        dist: '', // opcional
+        dist: '',
         items: {
           cristal: { desc: $('cristal')?.value || '', precio: $('precio_cristal')?.value || '0' },
           armazon: { nro: $('n_armazon')?.value || '', desc: $('detalle_armazon')?.value || '', precio: $('precio_armazon')?.value || '0' },
           otro:    { desc: $('otro_concepto')?.value || '', precio: $('precio_otro')?.value || '0' },
         },
-        totales: { total:'0', sena:'0', saldo:'0' }, // si querés, calculás de nuevo
+        totales: { total:'0', sena:'0', saldo:'0' },
         vendedor: $('vendedor')?.value || '',
         formaPago: $('forma_pago')?.value || '',
         qr: window.location.href
